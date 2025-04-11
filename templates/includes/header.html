@@ -1,0 +1,41 @@
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top py-3" data-navbar-on-scroll="data-navbar-on-scroll">
+        <div class="container">
+            <!-- Brand logo with gradient text -->
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <div class="brand-icon">
+                    <img src="{{ url_for('static', filename='assets/img/jawabin-logo-white.png') }}" alt="logo-jawabin"
+                        class="img-fluid" width="30">
+                </div>
+                <div class="brand-text">
+                    <span class="text-primary">Jawab</span><span class="text-dark">in</span>
+                </div>
+            </a>
+
+            <!-- Mobile toggle button -->
+            <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navbar links -->
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'index' else '' }}"
+                            href="{{ url_for('index') }}">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'prediction' else '' }}"
+                            href="">Prediksi</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'evaluation' else '' }}"
+                            href="#">Evaluasi</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
