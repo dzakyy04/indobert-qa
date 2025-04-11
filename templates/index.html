@@ -3,5 +3,450 @@
 {% block title %}Jawabin - Sistem Tanya Jawab Ekstraktif{% endblock %}
 
 {% block content %}
-<div style="height: 100vh;"></div>
+<!-- Hero Section -->
+<section class="hero-section position-relative overflow-hidden">
+    <div class="hero-wave"></div>
+    <div class="container position-relative">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6 py-5 text-center text-lg-start" data-aos="fade-right">
+                <div class="hero-badge mb-4">
+                    <img src="{{ url_for('static', filename='assets/img/jawabin-logo.png') }}" alt="logo-jawabin"
+                        class="img-fluid" width="20">
+                    <span>&nbsp;Jawabin</span>
+                </div>
+                <h1 class="display-3 fw-bold text-gradient">Temukan Jawaban dalam Sekejap!</h1>
+                <div class="title-line"></div>
+                <p class="lead my-4">Capek scroll panjang-panjang cari informasi? Dengan Jawabin, cukup ajukan
+                    pertanyaan dan langsung dapat jawaban dari teks secara instan dan akurat.</p>
+
+                <div class="cta-group">
+                    <a class="btn btn-glow me-2" href="" role="button">
+                        <i class="fas fa-search me-2"></i>Coba Prediksi
+                    </a>
+                    <a class="btn btn-outline-primary" href="" role="button">
+                        <i class="fas fa-chart-line me-2"></i>Uji Evaluasi
+                    </a>
+                </div>
+
+                <div class="hero-stats mt-5">
+                    <div class="hero-stat-item">
+                        <div class="hero-stat-number">5<span class="small">dtk</span></div>
+                        <div class="hero-stat-label">Kecepatan Respon</div>
+                    </div>
+                    <div class="hero-stat-item">
+                        <div class="hero-stat-number">60<span class="small">%</span></div>
+                        <div class="hero-stat-label">Exact Match</div>
+                    </div>
+                    <div class="hero-stat-item">
+                        <div class="hero-stat-number">72<span class="small">%</span></div>
+                        <div class="hero-stat-label">F1-Score</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 py-5 text-center position-relative" data-aos="fade-left">
+                <div class="hero-image-container">
+                    <div class="hero-blob"></div>
+                    <img class="hero-image"
+                        src="{{ url_for('static', filename='assets/img/illustrations/confuse-hero.png') }}"
+                        alt="Orang kebingungan mencari informasi">
+                </div>
+                <div class="floating-card card-1">
+                    <i class="fas fa-search"></i>
+                    <span>Hasil Ekstraktif</span>
+                </div>
+                <div class="floating-card card-2">
+                    <i class="fas fa-bolt"></i>
+                    <span>Super Cepat</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Feature Section -->
+<section id="features">
+    <div class="bg-holder"></div>
+    <div class="container-lg">
+        <div class="row align-items-center">
+            <div class="col-md-5 col-lg-6 order-md-0 text-center text-md-start">
+                <img class="img-fluid"
+                    src="{{ url_for('static', filename='assets/img/illustrations/confuse-feature.png') }}" width="550"
+                    alt="Ilustrasi kebingungan mencari informasi">
+            </div>
+            <div class="col-md-7 col-lg-6 px-sm-5 px-md-0">
+                <h6 class="text-primary fw-bold text-uppercase">Keunggulan Kami</h6>
+                <h2 class="fw-bold fs-4 display-3 lh-sm">Solusi Cerdas dalam Genggaman!</h2>
+                <p class="my-4">Cari info gak pernah semudah ini! Jawabin hadir dengan
+                    fitur-fitur pintar yang siap bantu kamu temukan jawaban secara cepat dan efisien.</p>
+
+                <article class="d-flex align-items-center mb-5">
+                    <figure class="m-0">
+                        <img class="img-fluid"
+                            src="{{ url_for('static', filename='assets/img/illustrations/search.png') }}" width="150"
+                            alt="Icon ekstraktif">
+                    </figure>
+                    <div class="px-4">
+                        <h3 class="fw-bold text-danger">Jawaban Ekstraktif</h3>
+                        <p>Nggak perlu baca semua! Sistem langsung kasih bagian paling relevan dari teks sebagai
+                            jawaban.</p>
+                    </div>
+                </article>
+
+                <article class="d-flex align-items-center mb-5">
+                    <figure class="m-0">
+                        <img class="img-fluid"
+                            src="{{ url_for('static', filename='assets/img/illustrations/fast.png') }}" width="150"
+                            alt="Icon cepat">
+                    </figure>
+                    <div class="px-4">
+                        <h3 class="fw-bold text-primary">Super Cepat & Akurat</h3>
+                        <p>Jawaban keluar kurang dari 5 detik! Cocok buat kamu yang butuh jawaban instan dan tepat.</p>
+                    </div>
+                </article>
+
+                <article class="d-flex align-items-center">
+                    <figure class="m-0">
+                        <img class="img-fluid" src="{{ url_for('static', filename='assets/img/illustrations/ai.png') }}"
+                            width="150" alt="Icon AI">
+                    </figure>
+                    <div class="px-4">
+                        <h3 class="fw-bold text-success">Didukung AI Canggih</h3>
+                        <p>Gunakan AI untuk memahami konteks dan menemukan jawaban terbaik secara
+                            otomatis.</p>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Prediction Section -->
+<section class="prediction-section py-8" id="info">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0" data-aos="fade-right">
+                <div class="interactive-mockup">
+                    <div class="mockup-header">
+                        <div class="mockup-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div class="mockup-title">Jawabin App</div>
+                    </div>
+                    <div class="mockup-content">
+                        <div class="mockup-context">
+                            <div class="context-badge">Konteks</div>
+                            <p>Proklamasi Kemerdekaan Indonesia merupakan momen bersejarah yang terjadi pada tanggal
+                                <span class="highlight-answer">17
+                                    Agustus 1945</span> . Pada hari itu,
+                                Ir. Soekarno, didampingi oleh Drs. Mohammad Hatta, secara resmi membacakan teks
+                                proklamasi kemerdekaan di kediamannya
+                                yang terletak di Jalan Pegangsaan Timur No. 56, Jakarta. Pembacaan proklamasi ini
+                                menjadi tonggak penting dalam
+                                perjalanan bangsa Indonesia karena menandai berakhirnya masa penjajahan oleh bangsa
+                                asing, khususnya penjajahan Belanda
+                                dan Jepang, yang telah berlangsung selama berabad-abad.
+                            </p>
+                        </div>
+                        <div class="mockup-question">
+                            <div class="question-badge">Pertanyaan</div>
+                            <p>Kapan Proklamasi Kemerdekaan Indonesia terjadi?</p>
+                        </div>
+                        <div class="mockup-answer">
+                            <div class="answer-badge">Jawaban</div>
+                            <p>17 Agustus 1945</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5 offset-lg-1 text-center text-lg-start" data-aos="fade-left">
+                <h6 class="text-primary fw-bold text-uppercase">Cara Kerja</h6>
+                <h2 class="display-4 fw-bold">Tanya Sekarang, Jawabannya Langsung Muncul!</h2>
+                <div class="title-line"></div>
+
+                <div class="steps-container mt-5">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h5>Masukkan Konteks</h5>
+                            <p>Salin teks artikel, dokumen, atau informasi yang ingin kamu analisis</p>
+                        </div>
+                    </div>
+
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h5>Ajukan Pertanyaan</h5>
+                            <p>Ketik pertanyaan yang jawabannya ingin kamu temukan dalam konteks</p>
+                        </div>
+                    </div>
+
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h5>Dapatkan Jawaban</h5>
+                            <p>AI kami akan langsung menunjukkan jawaban yang paling relevan</p>
+                        </div>
+                    </div>
+                </div>
+
+                <a class="btn btn-glow mt-4" href="" role="button">
+                    <i class="fas fa-search me-2"></i>Coba Sekarang
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Evaluation Section -->
+<section class="evaluation-section py-8 bg-light" id="evaluation">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-5 text-center text-lg-start" data-aos="fade-right">
+                <h6 class="text-primary fw-bold text-uppercase">Evaluasi Model</h6>
+                <h2 class="display-4 fw-bold">Uji Kehebatan Model Kami dengan Datamu Sendiri!</h2>
+                <div class="title-line"></div>
+                <p class="lead my-4">Ingin tahu seberapa canggih performa sistem Jawabin? Unggah file CSV berisi data
+                    uji kamu, dan dapatkan hasil evaluasi akurat dengan metrik Exact Match dan F1-Score.</p>
+
+                <div class="metrics-showcase mt-5">
+                    <div class="metric-item">
+                        <div class="metric-ring">
+                            <svg viewBox="0 0 120 120">
+                                <circle class="progress-bg" cx="60" cy="60" r="54" />
+                                <circle class="progress-ring" cx="60" cy="60" r="54" stroke-dasharray="339.3"
+                                    stroke-dashoffset="67.9" />
+                            </svg>
+                            <span class="metric-value">67%</span>
+                        </div>
+                        <p class="metric-name">Exact Match</p>
+                    </div>
+
+                    <div class="metric-item">
+                        <div class="metric-ring">
+                            <svg viewBox="0 0 120 120">
+                                <circle class="progress-bg" cx="60" cy="60" r="54" />
+                                <circle class="progress-ring" cx="60" cy="60" r="54" stroke-dasharray="339.3"
+                                    stroke-dashoffset="34.0" />
+                            </svg>
+                            <span class="metric-value">89%</span>
+                        </div>
+                        <p class="metric-name">F1-Score</p>
+                    </div>
+                </div>
+
+                <a class="btn btn-outline-primary mt-4" href="" role="button">
+                    <i class="fas fa-chart-bar me-2"></i>Evaluasi Sekarang
+                </a>
+            </div>
+
+            <div class="col-lg-6 offset-lg-1 mt-5 mt-lg-0" data-aos="fade-left">
+                <div class="file-upload-mockup">
+                    <div class="file-header">
+                        <i class="fas fa-file-csv me-2"></i>
+                        Unggah File CSV
+                    </div>
+                    <div class="file-example">
+                        <div class="example-header">
+                            <i class="fas fa-table me-2"></i>
+                            Data Uji
+                        </div>
+                        <div class="example-table">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>konteks</th>
+                                        <th>pertanyaan</th>
+                                        <th>jawaban</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-truncate">Gunung Everest adalah gunung tertinggi di dunia dengan
+                                            ketinggian mencapai
+                                            8.848 meter di atas permukaan laut.</td>
+                                        <td>Berapa tinggi Gunung Everest?</td>
+                                        <td>8.848 meter</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-truncate">Presiden pertama Republik Indonesia adalah Ir.
+                                            Soekarno yang memimpin sejak
+                                            tahun 1945.</td>
+                                        <td>Siapa presiden pertama Indonesia?</td>
+                                        <td>Ir. Soekarno</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-truncate">Pulau Bali dikenal sebagai destinasi wisata terkenal
+                                            di Indonesia, terutama
+                                            karena pantainya.</td>
+                                        <td>Apa yang membuat Bali terkenal?</td>
+                                        <td>pantainya</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="example-header mt-3">
+                            <i class="fas fa-table me-2"></i>
+                            Hasil
+                        </div>
+
+                        <div class="example-table">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>konteks</th>
+                                        <th>pertanyaan</th>
+                                        <th>jawaban</th>
+                                        <th>prediksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="text-truncate">Gunung Everest adalah gunung tertinggi di dunia dengan
+                                            ketinggian mencapai
+                                            8.848 meter di atas permukaan laut.</td>
+                                        <td>Berapa tinggi Gunung Everest?</td>
+                                        <td>8.848 meter</td>
+                                        <td>8.848 meter</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-truncate">Presiden pertama Republik Indonesia adalah Ir.
+                                            Soekarno yang memimpin sejak
+                                            tahun 1945.</td>
+                                        <td>Siapa presiden pertama Indonesia?</td>
+                                        <td>Ir. Soekarno</td>
+                                        <td>Soekarno</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-truncate">Pulau Bali dikenal sebagai destinasi wisata terkenal
+                                            di Indonesia, terutama
+                                            karena pantainya.</td>
+                                        <td>Apa yang membuat Bali terkenal?</td>
+                                        <td>pantainya</td>
+                                        <td>pantainya</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section py-8" id="faq">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h6 class="text-primary fw-bold text-uppercase">FAQ</h6>
+            <h2 class="display-4 fw-bold">Pertanyaan yang Sering Ditanyakan</h2>
+            <div class="title-line mx-auto"></div>
+            <p class="lead mx-auto" style="max-width: 700px;">Masih penasaran? Tenang, kami rangkum beberapa pertanyaan
+                yang sering diajukan agar kamu makin paham cara kerja Jawabin.</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="faq-container">
+                    {% for faq in faqs|default([
+                    {
+                    'id': 1,
+                    'question': 'Apa itu sistem tanya jawab ekstraktif?',
+                    'answer': 'Ini adalah teknologi cerdas yang bisa kasih kamu jawaban langsung dari teks — tanpa harus
+                    baca semuanya! Sistem akan menyorot bagian paling relevan dari teks sebagai jawaban atas
+                    pertanyaanmu.'
+                    },
+                    {
+                    'id': 2,
+                    'question': 'Seberapa cepat sistem ini memberikan jawaban?',
+                    'answer': 'Cepat banget! Jawaban muncul dalam waktu kurang dari 5 detik. Tentu, kecepatan bisa
+                    sedikit bervariasi tergantung panjang teks dan kompleksitas pertanyaan.'
+                    },
+                    {
+                    'id': 3,
+                    'question': 'Dari mana sistem ini mengambil jawaban?',
+                    'answer': 'Jawabannya diambil langsung dari teks yang kamu masukkan sebagai konteks. Jadi, pastikan
+                    teksnya relevan ya!'
+                    },
+                    {
+                    'id': 4,
+                    'question': 'Apakah sistem ini bisa menjawab semua jenis pertanyaan?',
+                    'answer': 'Selama jawabannya ada dalam teks yang kamu berikan, sistem akan bisa bantu. Tapi kalau
+                    info-nya nggak ada di sana, ya sistem juga nggak bisa nebak 😅.'
+                    },
+                    {
+                    'id': 5,
+                    'question': 'Bagaimana cara mengevaluasi model dengan data pengujian?',
+                    'answer': 'Gampang banget! Cukup unggah file CSV berisi kolom konteks, pertanyaan, dan jawaban.
+                    Sistem akan otomatis hitung performa berdasarkan metrik Exact Match dan F1-Score.'
+                    }
+                    ]) %}
+                    <div class="faq-item" data-aos="fade-up" data-aos-delay="{{ faq.id * 100 }}">
+                        <div class="faq-question" data-id="{{ faq.id }}">
+                            <h5>{{ faq.question }}</h5>
+                            <div class="faq-icon" id="faqIcon{{ faq.id }}">+</div>
+                        </div>
+                        <div class="faq-answer" id="faqAnswer{{ faq.id }}">
+                            {{ faq.answer }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-8 bg-light">
+    <div class="container">
+        <div class="cta-box" data-aos="zoom-in">
+            <div class="row align-items-center">
+                <div class="col-lg-8 text-center text-lg-start">
+                    <h3 class="mb-3">Siap Temukan Jawaban dengan Cepat?</h3>
+                    <p class="lead mb-0">Coba Jawabin sekarang dan rasakan kemudahan mencari informasi!</p>
+                </div>
+                <div class="col-lg-4 text-center text-lg-end mt-4 mt-lg-0">
+                    <a class="btn btn-light btn-lg" href="" role="button">
+                        <i class="fas fa-rocket me-2"></i>Mulai Sekarang
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const faqQuestions = document.querySelectorAll(".faq-question");
+
+        faqQuestions.forEach(question => {
+            question.addEventListener("click", function () {
+                const id = this.getAttribute("data-id");
+                toggleFaq(id);
+            });
+        });
+    });
+
+    function toggleFaq(id) {
+        const answer = document.getElementById(`faqAnswer${id}`);
+        const icon = document.getElementById(`faqIcon${id}`);
+
+        if (answer.style.maxHeight) {
+            answer.style.maxHeight = null;
+            icon.innerHTML = '+';
+        } else {
+            answer.style.maxHeight = answer.scrollHeight + 'px';
+            icon.innerHTML = '-';
+        }
+    }
+</script>
+
 {% endblock %}
