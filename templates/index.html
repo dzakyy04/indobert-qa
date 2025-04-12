@@ -211,28 +211,40 @@
                 <div class="title-line"></div>
                 <p class="lead my-4">Ingin tahu seberapa canggih performa sistem Jawabin? Unggah file CSV berisi data
                     uji kamu, dan dapatkan hasil evaluasi akurat dengan metrik Exact Match dan F1-Score.</p>
-
                 <div class="metrics-showcase mt-5">
                     <div class="metric-item">
                         <div class="metric-ring">
+                            <div class="pulse"></div>
                             <svg viewBox="0 0 120 120">
+                                <defs>
+                                    <linearGradient id="gradientPrimary" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="var(--primary-color)" />
+                                        <stop offset="100%" stop-color="var(--primary-dark)" />
+                                    </linearGradient>
+                                </defs>
                                 <circle class="progress-bg" cx="60" cy="60" r="54" />
                                 <circle class="progress-ring" cx="60" cy="60" r="54" stroke-dasharray="339.3"
-                                    stroke-dashoffset="67.9" />
+                                    stroke-dashoffset="112" />
                             </svg>
                             <span class="metric-value">67%</span>
                         </div>
                         <p class="metric-name">Exact Match</p>
                     </div>
-
                     <div class="metric-item">
                         <div class="metric-ring">
+                            <div class="pulse"></div>
                             <svg viewBox="0 0 120 120">
+                                <defs>
+                                    <linearGradient id="gradientPrimary2" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="var(--primary-color)" />
+                                        <stop offset="100%" stop-color="var(--primary-dark)" />
+                                    </linearGradient>
+                                </defs>
                                 <circle class="progress-bg" cx="60" cy="60" r="54" />
                                 <circle class="progress-ring" cx="60" cy="60" r="54" stroke-dasharray="339.3"
-                                    stroke-dashoffset="34.0" />
+                                    stroke-dashoffset="67.9" stroke="url(#gradientPrimary2)" />
                             </svg>
-                            <span class="metric-value">89%</span>
+                            <span class="metric-value">80%</span>
                         </div>
                         <p class="metric-name">F1-Score</p>
                     </div>
@@ -265,8 +277,8 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td class="text-truncate">Gunung Everest adalah gunung tertinggi di dunia dengan
-                                            ketinggian mencapai
+                                        <td class="text-truncate">Gunung Everest adalah gunung tertinggi di dunia
+                                            dengan ketinggian mencapai
                                             8.848 meter di atas permukaan laut.</td>
                                         <td>Berapa tinggi Gunung Everest?</td>
                                         <td>8.848 meter</td>
@@ -279,8 +291,8 @@
                                         <td>Ir. Soekarno</td>
                                     </tr>
                                     <tr>
-                                        <td class="text-truncate">Pulau Bali dikenal sebagai destinasi wisata terkenal
-                                            di Indonesia, terutama
+                                        <td class="text-truncate">Pulau Bali dikenal sebagai destinasi wisata
+                                            terkenal di Indonesia, terutama
                                             karena pantainya.</td>
                                         <td>Apa yang membuat Bali terkenal?</td>
                                         <td>pantainya</td>
@@ -306,8 +318,8 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td class="text-truncate">Gunung Everest adalah gunung tertinggi di dunia dengan
-                                            ketinggian mencapai
+                                        <td class="text-truncate">Gunung Everest adalah gunung tertinggi di dunia
+                                            dengan ketinggian mencapai
                                             8.848 meter di atas permukaan laut.</td>
                                         <td>Berapa tinggi Gunung Everest?</td>
                                         <td>8.848 meter</td>
@@ -322,8 +334,8 @@
                                         <td>Soekarno</td>
                                     </tr>
                                     <tr>
-                                        <td class="text-truncate">Pulau Bali dikenal sebagai destinasi wisata terkenal
-                                            di Indonesia, terutama
+                                        <td class="text-truncate">Pulau Bali dikenal sebagai destinasi wisata
+                                            terkenal di Indonesia, terutama
                                             karena pantainya.</td>
                                         <td>Apa yang membuat Bali terkenal?</td>
                                         <td>pantainya</td>
@@ -447,6 +459,54 @@
             icon.innerHTML = '-';
         }
     }
+
+    const metricItems = document.querySelectorAll('.metric-item');
+
+    metricItems.forEach(item => {
+        item.addEventListener('mouseenter', () => {
+            const pulse = item.querySelector('.pulse');
+            pulse.style.animation = 'none';
+            setTimeout(() => {
+                pulse.style.animation = 'pulse 2s infinite';
+            }, 10);
+        });
+    });
+
+    function animateMetrics() {
+        const metricValues = document.querySelectorAll('.metric-value');
+
+        metricValues.forEach(value => {
+            const targetValue = parseInt(value.textContent);
+            let currentValue = 0;
+
+            value.textContent = '0%'; // Reset awal
+
+            const interval = setInterval(() => {
+                if (currentValue < targetValue) {
+                    currentValue++;
+                    value.textContent = currentValue + '%';
+                } else {
+                    clearInterval(interval);
+                }
+            }, 20);
+        });
+    }
+
+    const evaluationSection = document.querySelector('.evaluation-section');
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateMetrics();
+                observer.unobserve(evaluationSection);
+            }
+        });
+    }, {
+        threshold: 0.5
+    });
+
+    observer.observe(evaluationSection);
+
 </script>
 
 {% endblock %}
