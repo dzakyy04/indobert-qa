@@ -186,7 +186,7 @@
                             </div>
                         </div>
                         <div class="metric-info">
-                            <strong id="confidenceText">Tinggi</strong> - Jawaban sangat akurat
+                            <strong id="confidenceLevel">Tinggi</strong> <span id="confidenceDescription">- Sangat Akurat</span>
                         </div>
                     </div>
                 </div>
@@ -226,7 +226,8 @@
         // Get metric info elements
         const startPositionPercentage = document.getElementById('startPositionPercentage');
         const endPositionPercentage = document.getElementById('endPositionPercentage');
-        const confidenceText = document.getElementById('confidenceText');
+        const confidenceLevel = document.getElementById('confidenceLevel');
+        const confidenceDescription = document.getElementById('confidenceDescription');
 
         // Hide loading spinner initially
         loadingSpinner.style.display = 'none';
@@ -394,15 +395,21 @@
             // Update end position info
             endPositionPercentage.textContent = `${endPercentage}%`;
 
-            // Update confidence info
-            let confidenceDescription = 'Rendah';
+            let confidenceDescriptionText, confidenceLevelText;
+
             if (score > 0.7) {
-                confidenceDescription = 'Tinggi';
+                confidenceLevelText = 'Tinggi';
+                confidenceDescriptionText = 'Sangat Akurat';
             } else if (score > 0.4) {
-                confidenceDescription = 'Sedang';
+                confidenceLevelText = 'Sedang';
+                confidenceDescriptionText = 'Cukup Akurat';
+            } else {
+                confidenceLevelText = 'Rendah';
+                confidenceDescriptionText = 'Kurang Akurat';
             }
 
-            confidenceText.textContent = confidenceDescription;
+            confidenceLevel.textContent = confidenceLevelText;
+            confidenceDescription.textContent = ' - ' + confidenceDescriptionText;
 
             // Update SVG circle strokes
             // The circumference of the circle is 2πr = 2 * 3.14159 * 65 ≈ 408.4
