@@ -32,7 +32,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ 'active' if request.endpoint == 'evaluation' else '' }}"
-                            href="#">Evaluasi</a>
+                            href="{{ url_for('evaluation') }}">Evaluasi</a>
                     </li>
                 </ul>
             </div>

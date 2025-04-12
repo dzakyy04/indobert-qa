@@ -31,6 +31,10 @@ def index():
 def prediction():
     return render_template('prediction.html')
 
+@app.route('/evaluation')
+def evaluation():
+    return render_template('evaluation.html')
+
 @app.route('/get_available_models')
 def get_available_models():
     models_directory = "models"

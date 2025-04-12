@@ -25,6 +25,8 @@
     <!-- AOS CSS -->
     <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
 
+    <!-- Sweetalert CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.3/sweetalert2.min.css">
 
     <!-- Stylesheets -->
     <link href="{{ url_for('static', filename='assets/css/theme.css') }}" rel="stylesheet">
@@ -65,6 +67,9 @@
         });
     </script>
     
+    <!-- Sweetalert JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.3/sweetalert2.all.min.js"></script>
+
     {% block extra_js %}{% endblock %}
 </body>
 

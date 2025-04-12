@@ -1,0 +1,400 @@
+{% extends 'base.html' %}
+
+{% block title %}Jawabin - Sistem Tanya Jawab Ekstraktif{% endblock %}
+
+{% block content %}
+
+<div class="container pt-5">
+    <!-- Hero Section -->
+    <div class="hero-card mt-6" data-aos="fade-up">
+        <div class="row">
+            <!-- Left Content -->
+            <div class="col-lg-5 mb-5 mb-lg-0" data-aos="fade-right" data-aos-delay="200">
+                <div class="brand-badge">
+                    <img src="{{ url_for('static', filename='assets/img/jawabin-logo.png') }}" alt="logo-jawabin"
+                        class="img-fluid" width="20">
+                    <span>&nbsp;Jawabin</span>
+                </div>
+
+                <h1 class="display-4 fw-bold text-gradient">Uji Model Jawabin dengan Data Kamu!</h1>
+                <div class="title-line"></div>
+                <img id="illustrationImage" class="img-fluid mb-2"
+                    src="{{ url_for('static', filename='assets/img/illustrations/confuse-prediction.png') }}"
+                    alt="Jawabin Illustration">
+                <p class="lead">Upload dataset kamu (konteks, pertanyaan, dan jawaban). Lihat performa model kami lewat
+                    metrik
+                    <strong>Exact
+                        Match</strong> dan <strong>F1 Score</strong>!
+                </p>
+
+
+            </div>
+
+            <!-- Right Form -->
+            <div class="col-lg-7" data-aos="fade-left" data-aos-delay="200">
+                <div class="input-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h4 class="mb-0">Uji Datamu Sekarang</h4>
+                    </div>
+
+                    <form id="predictForm">
+                        <div class="mb-4">
+                            <label for="model" class="form-label">Pilih Model</label>
+                            <select class="form-select" id="model" name="model" aria-label="Model selection">
+                                <option value="" selected>Pilih model konfigurasi</option>
+                                <!-- This will be populated dynamically -->
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="context" class="form-label">Data Uji</label>
+                            <div class="file-dropzone" id="customFileUpload">
+                                <input type="file" id="fileInput" accept=".csv" class="file-input"
+                                    style="display: none;">
+                                <div class="file-icon">
+                                    <i class="fas fa-file-upload"></i>
+                                </div>
+                                <h5 id="fileText">Drag & Drop File Kamu Di Sini</h5>
+                                <p>atau</p>
+                                <button class="btn btn-outline-secondary btn-sm" id="browseButton">Pilih File</button>
+                                <p class="small text-muted mt-3">Format: CSV dengan kolom konteks, pertanyaan, dan
+                                    jawaban</p>
+                                <p id="selectedFileName" class="mt-2" style="display: none;"></p>
+                            </div>
+                        </div>
+
+                        <div id="previewContainer" style="display: none; margin-top: 30px;">
+                            <div class="example-header">
+                                <i class="fas fa-table me-2"></i>
+                                Preview Data (5 baris teratas)
+                            </div>
+                            <div class="example-table">
+                                <div class="table-responsive">
+                                    <table class="table table-sm" id="previewTable">
+                                        <thead>
+                                            <tr>
+                                                <th>konteks</th>
+                                                <th>pertanyaan</th>
+                                                <th>jawaban</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Baris tabel akan diisi secara dinamis -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <button type="submit" class="btn btn-predict w-100">
+                            <i class="fas fa-chart-line me-2"></i></i>&nbsp;Evaluasi
+                        </button>
+                    </form>
+
+                    <!-- Loading spinner -->
+                    <div class="spinner-container" id="loadingSpinner">
+                        <div class="spinner"></div>
+                        <p class="mt-3">Sedang menganalisis...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropzone = document.getElementById('customFileUpload');
+        const fileInput = document.getElementById('fileInput');
+        const browseButton = document.getElementById('browseButton');
+        const fileText = document.getElementById('fileText');
+        const selectedFileName = document.getElementById('selectedFileName');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewTable = document.getElementById('previewTable');
+
+        // Objek untuk menyimpan data lengkap untuk setiap baris
+        let fullContextData = {};
+
+        // Kolom yang dibutuhkan (dengan trim untuk mengabaikan spasi)
+        const requiredColumns = ['konteks', 'pertanyaan', 'jawaban'];
+
+        // Ketika tombol "Pilih File" diklik
+        browseButton.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fileInput.click();
+        });
+
+        // Ketika dropzone diklik (selain tombol)
+        dropzone.addEventListener('click', function (e) {
+            if (e.target !== browseButton && !browseButton.contains(e.target)) {
+                fileInput.click();
+            }
+        });
+
+        // Ketika file dipilih melalui input
+        fileInput.addEventListener('change', function () {
+            handleFiles(this.files);
+        });
+
+        // Delegate event untuk menangani klik pada konteks
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.classList.contains('text-truncate')) {
+                const rowId = e.target.getAttribute('data-row-id');
+                if (rowId && fullContextData[rowId]) {
+                    showFullContext(fullContextData[rowId]);
+                }
+            }
+        });
+
+        // Fungsi untuk menampilkan konteks lengkap
+        function showFullContext(context) {
+            Swal.fire({
+                title: 'Konteks Lengkap',
+                html: `<div style="text-align: left; max-height: 70vh; overflow-y: auto;">${context}</div>`,
+                width: '80%',
+                confirmButtonText: 'Tutup',
+                confirmButtonColor: '#3085d6'
+            });
+        }
+
+        // Drag & Drop events
+        dropzone.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.add('drag-over');
+        });
+
+        dropzone.addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+        });
+
+        dropzone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+
+            if (e.dataTransfer.files.length) {
+                handleFiles(e.dataTransfer.files);
+            }
+        });
+
+        // Fungsi untuk menampilkan alert error dengan SweetAlert
+        function showErrorAlert(message) {
+            Swal.fire({
+                title: 'Error!',
+                text: message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#dc3545'
+            });
+            dropzone.classList.add('invalid');
+            previewContainer.style.display = 'none';
+        }
+
+        // Fungsi untuk menampilkan alert sukses dengan SweetAlert
+        function showSuccessAlert(message) {
+            Swal.fire({
+                title: 'Berhasil!',
+                text: message,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#28a745',
+                timer: 2000,
+                timerProgressBar: true
+            });
+        }
+
+        // Fungsi untuk menghapus pesan error
+        function clearError() {
+            dropzone.classList.remove('invalid');
+        }
+
+        // Fungsi untuk menangani file yang diupload
+        function handleFiles(files) {
+            clearError();
+
+            if (files.length > 0) {
+                const file = files[0];
+
+                // Periksa apakah file adalah CSV
+                if (file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv')) {
+                    selectedFileName.textContent = 'File: ' + file.name;
+                    selectedFileName.style.display = 'block';
+
+                    // Baca file sebagai text
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const csv = e.target.result;
+                        validateAndDisplayCSV(csv);
+                    };
+                    reader.readAsText(file);
+                } else {
+                    fileText.textContent = 'Unggah File CSV';
+                    showErrorAlert('Hanya file CSV yang diperbolehkan!');
+                    selectedFileName.style.display = 'none';
+                    fileInput.value = ''; // Reset input file
+                }
+            }
+        }
+
+        // Versi yang lebih robust untuk parsing CSV
+        function parseCSV(text) {
+            // Mendeteksi dan menghapus BOM jika ada
+            if (text.charCodeAt(0) === 0xFEFF) {
+                text = text.substring(1);
+            }
+
+            const rows = [];
+            let insideQuote = false;
+            let currentToken = '';
+            let currentRow = [];
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i + 1] || '';
+
+                if (char === '"') {
+                    if (insideQuote && nextChar === '"') {
+                        // Double quote inside quoted field
+                        currentToken += '"';
+                        i++; // Skip the next quote
+                    } else {
+                        // Toggle quote state
+                        insideQuote = !insideQuote;
+                    }
+                } else if (char === ',' && !insideQuote) {
+                    // End of field
+                    currentRow.push(currentToken.trim());
+                    currentToken = '';
+                } else if ((char === '\r' || char === '\n') && !insideQuote) {
+                    // End of row
+                    if (currentToken !== '' || currentRow.length > 0) {
+                        currentRow.push(currentToken.trim());
+                        if (currentRow.some(cell => cell !== '')) {
+                            rows.push(currentRow);
+                        }
+                        currentRow = [];
+                        currentToken = '';
+                    }
+
+                    // Skip the \n of a \r\n sequence
+                    if (char === '\r' && nextChar === '\n') {
+                        i++;
+                    }
+                } else {
+                    currentToken += char;
+                }
+            }
+
+            // Handle the last row
+            if (currentToken !== '' || currentRow.length > 0) {
+                currentRow.push(currentToken.trim());
+                if (currentRow.some(cell => cell !== '')) {
+                    rows.push(currentRow);
+                }
+            }
+
+            return rows;
+        }
+
+        // Fungsi untuk memvalidasi dan menampilkan CSV
+        function validateAndDisplayCSV(csv) {
+            // Reset data konteks lengkap
+            fullContextData = {};
+
+            // Parse CSV dengan fungsi yang lebih robust
+            const rows = parseCSV(csv);
+
+            if (rows.length === 0) {
+                showErrorAlert('File CSV kosong!');
+                return;
+            }
+
+            // Dapatkan header (baris pertama)
+            const headerRow = rows[0].map(col => col.toLowerCase().trim());
+
+            // Debug: Tampilkan header yang terdeteksi di konsol
+            console.log("Header yang terdeteksi:", headerRow);
+
+            // Validasi kolom yang dibutuhkan
+            const missingColumns = [];
+            for (const col of requiredColumns) {
+                if (!headerRow.includes(col)) {
+                    missingColumns.push(col);
+                }
+            }
+
+            if (missingColumns.length > 0) {
+                showErrorAlert(`File CSV tidak valid! Kolom yang hilang: ${missingColumns.join(', ')}`);
+                fileText.textContent = 'Format file tidak sesuai!';
+                return;
+            }
+
+            // Mencari indeks kolom yang dibutuhkan
+            const contextIndex = headerRow.indexOf('konteks');
+            const questionIndex = headerRow.indexOf('pertanyaan');
+            const answerIndex = headerRow.indexOf('jawaban');
+
+            // Clear existing table
+            const tbody = previewTable.querySelector('tbody');
+            tbody.innerHTML = '';
+
+            // Add data rows (limit to 5)
+            const maxRows = Math.min(rows.length, 6); // 5 data rows + header
+            let validRows = 0;
+
+            for (let i = 1; i < maxRows; i++) {
+                if (i >= rows.length) break;
+
+                const dataRow = rows[i];
+                if (dataRow.length < Math.max(contextIndex, questionIndex, answerIndex) + 1) continue; // Skip invalid rows
+
+                const tr = document.createElement('tr');
+                const rowId = `row-${i}`;
+
+                // Simpan konteks lengkap di objek data
+                const fullContext = dataRow[contextIndex];
+                fullContextData[rowId] = fullContext;
+
+                // Tambahkan kolom yang dibutuhkan
+                const td1 = document.createElement('td');
+                td1.className = 'text-truncate';
+                td1.setAttribute('data-row-id', rowId);
+                td1.setAttribute('title', 'Klik untuk melihat konteks lengkap');
+                td1.textContent = fullContext;
+                tr.appendChild(td1);
+
+                const td2 = document.createElement('td');
+                td2.textContent = dataRow[questionIndex];
+                tr.appendChild(td2);
+
+                const td3 = document.createElement('td');
+                td3.textContent = dataRow[answerIndex];
+                tr.appendChild(td3);
+
+                tbody.appendChild(tr);
+                validRows++;
+            }
+
+            if (validRows > 0) {
+                // Show the preview container
+                previewContainer.style.display = 'block';
+                fileText.textContent = 'File berhasil diunggah!';
+
+                // Tampilkan alert sukses
+                showSuccessAlert('File CSV berhasil diunggah dan divalidasi.');
+            } else {
+                showErrorAlert('File CSV tidak berisi data valid!');
+                fileText.textContent = 'Tidak ada data valid!';
+            }
+        }
+    });
+</script>
+{% endblock %}
