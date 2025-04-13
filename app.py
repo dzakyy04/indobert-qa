@@ -1,117 +1,114 @@
-from flask import Flask, render_template, request, jsonify
-from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
-import os
+from flask import Flask, render_template, request, jsonify, Response
+from flask_caching import Cache
+from model_handler import ModelHandler
+from predictor import Predictor
+from evaluator import Evaluator
 
-app = Flask(__name__)
-
-# Dictionary to store loaded models
-loaded_models = {}
-
-def get_model_pipeline(model_path):
-    if model_path in loaded_models:
-        return loaded_models[model_path]
-    
-    try:
-        model = AutoModelForQuestionAnswering.from_pretrained(model_path)
-        tokenizer = AutoTokenizer.from_pretrained(model_path)
-        qa_pipeline = pipeline("question-answering", model=model, tokenizer=tokenizer)
+class App:
+    def __init__(self):
+        self.app = Flask(__name__)
         
-        # Store in cache
-        loaded_models[model_path] = qa_pipeline
-        return qa_pipeline
-    except Exception as e:
-        print(f"Error loading model from {model_path}: {str(e)}")
-        raise
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/prediction')
-def prediction():
-    return render_template('prediction.html')
-
-@app.route('/evaluation')
-def evaluation():
-    return render_template('evaluation.html')
-
-@app.route('/get_available_models')
-def get_available_models():
-    models_directory = "models"
-    models = []
+        # Configure Flask-Caching
+        cache_config = {
+            "CACHE_TYPE": "SimpleCache",
+            "CACHE_DEFAULT_TIMEOUT": 86400  # 24 hours in seconds
+        }
+        self.cache = Cache(self.app, config=cache_config)
+        
+        # Initialize components
+        self.model_handler = ModelHandler()
+        self.predictor = Predictor(self.model_handler)
+        self.evaluator = Evaluator(self.model_handler, self.cache)
+        
+        # Set up routes
+        self.setup_routes()
     
-    # Check if the models directory exists
-    if os.path.exists(models_directory) and os.path.isdir(models_directory):
-        # List all subdirectories in the models directory
-        for model_folder in os.listdir(models_directory):
-            model_path = os.path.join(models_directory, model_folder)
+    def setup_routes(self):
+        # UI Routes
+        @self.app.route('/')
+        def index():
+            return render_template('index.html')
+        
+        @self.app.route('/prediction')
+        def prediction():
+            return render_template('prediction.html')
+        
+        @self.app.route('/evaluation')
+        def evaluation():
+            return render_template('evaluation.html')
+        
+        # API Routes
+        @self.app.route('/api/get_available_models')
+        def get_available_models():
+            models = self.model_handler.get_available_models()
+            return jsonify({"models": models})
+        
+        @self.app.route("/api/predict", methods=["POST"])
+        def predict():
+            data = request.json
+            context = data.get("context", "").strip()
+            question = data.get("question", "").strip()
+            model_path = data.get("model_path", "models/model1").strip()
             
-            # Check if it's a directory and contains model files
-            if os.path.isdir(model_path) and is_valid_model(model_path):
-                # Extract the model name from configuration files if possible
-                model_name = get_model_name(model_path, model_folder)
+            try:
+                result = self.predictor.predict(context, question, model_path)
+                return jsonify(result)
+            except ValueError as e:
+                return jsonify({"error": str(e)}), 400
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+        
+        @self.app.route('/api/evaluate', methods=['POST'])
+        def evaluate_model():
+            try:
+                if 'file' not in request.files:
+                    return jsonify({'error': 'No file uploaded'}), 400
                 
-                models.append({
-                    "name": model_name,
-                    "path": model_path
-                })
-    
-    return jsonify({"models": models})
-
-def is_valid_model(model_path):
-    # Check for typical files that should exist in a Hugging Face model directory
-    required_files = ["config.json"]
-    
-    for file in required_files:
-        if not os.path.exists(os.path.join(model_path, file)):
-            return False
-    
-    return True
-
-def get_model_name(model_path, default_name):
-    # Try to read from config.json
-    config_path = os.path.join(model_path, "config.json")
-    try:
-        import json
-        if os.path.exists(config_path):
-            with open(config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-                return f"{default_name}"
-    except:
-        pass
-    
-    # If we couldn't get a better name, just use the directory name
-    return default_name
-
-@app.route("/predict", methods=["POST"])
-def predict():
-    data = request.json
-    context = data.get("context", "").strip()
-    question = data.get("question", "").strip()
-    model_path = data.get("model_path", "models/model1").strip()
-
-    if not context or not question:
-        return jsonify({"error": "Both 'context' and 'question' fields are required"}), 400
-    
-    if not model_path:
-        return jsonify({"error": "Model path is required"}), 400
-
-    try:
-        # Get the pipeline for the selected model
-        qa_pipeline = get_model_pipeline(model_path)
+                file = request.files['file']
+                model_path = request.form.get('model_path', 'models/model1')
+                
+                results = self.evaluator.evaluate_model(file, model_path)
+                
+                # Create download endpoint URL (full URL with host included)
+                download_link = request.host_url.rstrip('/') + f"/api/download-csv/{results['eval_id']}"
+                results['download_link'] = download_link
+                
+                # Remove DataFrame from results before returning
+                del results['df_export']
+                
+                return jsonify(results)
+            
+            except ValueError as e:
+                return jsonify({'error': str(e)}), 400
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
         
-        # Run inference
-        result = qa_pipeline(question=question, context=context, max_answer_len=100)
-        
-        return jsonify({
-            "answer": result["answer"],
-            "start": result["start"],
-            "end": result["end"],
-            "score": result["score"],
-            "model": model_path
-        })
-    except Exception as e:
-        return jsonify({"error": f"Error processing request: {str(e)}"}), 500
+        @self.app.route('/api/download-csv/<eval_id>', methods=['GET'])
+        def download_csv(eval_id):
+            try:
+                csv_data = self.evaluator.get_csv_export(eval_id)
+                
+                # Create response with CSV data
+                response = Response(
+                    csv_data,
+                    mimetype='text/csv',
+                    headers={
+                        'Content-Disposition': f'attachment; filename=hasil_evaluasi.csv',
+                        'Content-Type': 'text/csv'
+                    }
+                )
+                
+                return response
+                
+            except ValueError as e:
+                return jsonify({'error': str(e)}), 404
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+    
+    def run(self, debug=True, host='0.0.0.0', port=5000):
+        self.app.run(debug=debug, host=host, port=port)
+
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app = App()
+    app.run(debug=True, host='0.0.0.0', port=5000)

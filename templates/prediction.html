@@ -357,7 +357,7 @@
             resultsSection.style.display = 'none';
 
             // Send API request
-            fetch('/predict', {
+            fetch('api/predict', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -398,7 +398,7 @@
         });
 
         function fetchAvailableModels() {
-            fetch('/get_available_models')
+            fetch('api/get_available_models')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Failed to fetch available models');
