@@ -2,8 +2,20 @@
 
 {% block title %}Jawabin - Sistem Tanya Jawab Ekstraktif{% endblock %}
 
-{% block content %}
+{% block extra_css %}
+<style>
+    .metric-ring {
+        width: 120px !important;
+        height: 120px !important;
+    }
 
+    .metric-value {
+        font-size: 1.5rem !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
 <div class="container pt-5">
     <!-- Hero Section -->
     <div class="hero-card mt-6" data-aos="fade-up">
@@ -42,7 +54,6 @@
                         <div class="mb-4">
                             <label for="model" class="form-label">Pilih Model</label>
                             <select class="form-select" id="model" name="model" aria-label="Model selection">
-                                <option value="" selected>Pilih model konfigurasi</option>
                                 <!-- This will be populated dynamically -->
                             </select>
                         </div>
@@ -59,16 +70,12 @@
                                 placeholder="Masukkan pertanyaan yang ingin dijawab..."></textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-predict w-100">
-                            <i class="fas fa-search"></i>&nbsp;Prediksi
+                        <button type="submit" class="btn btn-predict w-100" id="predictButton">
+                            <i class="fas fa-search" id="searchIcon"></i>&nbsp;<span id="buttonText">Prediksi</span>
+                            <span class="spinner-border spinner-border-sm" id="buttonSpinner" role="status"
+                                style="display: none;"></span>
                         </button>
                     </form>
-
-                    <!-- Loading spinner -->
-                    <div class="spinner-container" id="loadingSpinner">
-                        <div class="spinner"></div>
-                        <p class="mt-3">Sedang menganalisis...</p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -136,57 +143,78 @@
                     <!-- Start Position -->
                     <div class="metric-card">
                         <h6 class="metric-title">Posisi<br>Awal</h6>
-                        <div class="progress-circle">
-                            <svg viewBox="0 0 140 140">
-                                <circle class="progress-bg" cx="70" cy="70" r="65"></circle>
-                                <circle class="progress-arc progress-start" cx="70" cy="70" r="65"
-                                    stroke-dasharray="408.4" stroke-dashoffset="102.1"></circle>
-                            </svg>
-                            <div class="progress-text">
-                                <p class="progress-value" id="startPositionValue"></p>
-                                <p class="progress-label">Karakter</p>
+                        <div class="metric-item">
+                            <div class="metric-ring">
+                                <div class="pulse"></div>
+                                <svg viewBox="0 0 120 120">
+                                    <defs>
+                                        <linearGradient id="gradientPrimary" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="var(--primary-color)" />
+                                            <stop offset="100%" stop-color="var(--primary-dark)" />
+                                        </linearGradient>
+                                    </defs>
+                                    <circle class="progress-bg" cx="60" cy="60" r="54" />
+                                    <circle class="progress-ring start-position-ring" cx="60" cy="60" r="54"
+                                        stroke-dasharray="339.3" stroke-dashoffset="339.3" />
+                                </svg>
+                                <span class="metric-value" id="startPositionValue">0</span>
                             </div>
                         </div>
                         <div class="metric-info">
-                            <strong id="startPositionPercentage"></strong> dari total teks
+                            <strong id="startPositionPercentage">0%</strong> dari total teks
                         </div>
                     </div>
 
                     <!-- End Position -->
                     <div class="metric-card">
                         <h6 class="metric-title">Posisi<br>Akhir</h6>
-                        <div class="progress-circle">
-                            <svg viewBox="0 0 140 140">
-                                <circle class="progress-bg" cx="70" cy="70" r="65"></circle>
-                                <circle class="progress-arc progress-end" cx="70" cy="70" r="65"
-                                    stroke-dasharray="408.4" stroke-dashoffset="81.68"></circle>
-                            </svg>
-                            <div class="progress-text">
-                                <p class="progress-value" id="endPositionValue">72</p>
-                                <p class="progress-label">Karakter</p>
+                        <div class="metric-item">
+                            <div class="metric-ring">
+                                <div class="pulse"></div>
+                                <svg viewBox="0 0 120 120">
+                                    <defs>
+                                        <linearGradient id="gradientPrimary2" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="var(--primary-color)" />
+                                            <stop offset="100%" stop-color="var(--primary-dark)" />
+                                        </linearGradient>
+                                    </defs>
+                                    <circle class="progress-bg" cx="60" cy="60" r="54" />
+                                    <circle class="progress-ring end-position-ring" cx="60" cy="60" r="54"
+                                        stroke-dasharray="339.3" stroke-dashoffset="339.3"
+                                        stroke="url(#gradientPrimary2)" />
+                                </svg>
+                                <span class="metric-value" id="endPositionValue">0</span>
                             </div>
                         </div>
                         <div class="metric-info">
-                            <strong id="endPositionPercentage">32%</strong> dari total teks
+                            <strong id="endPositionPercentage">0%</strong> dari total teks
                         </div>
                     </div>
 
                     <!-- Confidence Score -->
                     <div class="metric-card">
                         <h6 class="metric-title">Confidence<br>Score</h6>
-                        <div class="progress-circle">
-                            <svg viewBox="0 0 140 140">
-                                <circle class="progress-bg" cx="70" cy="70" r="65"></circle>
-                                <circle class="progress-arc progress-confidence" cx="70" cy="70" r="65"
-                                    stroke-dasharray="408.4" stroke-dashoffset="40.84"></circle>
-                            </svg>
-                            <div class="progress-text">
-                                <p class="progress-value" id="confidenceValue">90%</p>
-                                <p class="progress-label">Kepercayaan</p>
+                        <div class="metric-item">
+                            <div class="metric-ring">
+                                <div class="pulse"></div>
+                                <svg viewBox="0 0 120 120">
+                                    <defs>
+                                        <linearGradient id="gradientPrimary3" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="var(--primary-color)" />
+                                            <stop offset="100%" stop-color="var(--primary-dark)" />
+                                        </linearGradient>
+                                    </defs>
+                                    <circle class="progress-bg" cx="60" cy="60" r="54" />
+                                    <circle class="progress-ring confidence-ring" cx="60" cy="60" r="54"
+                                        stroke-dasharray="339.3" stroke-dashoffset="339.3"
+                                        stroke="url(#gradientPrimary3)" />
+                                </svg>
+                                <span class="metric-value" id="confidenceValue">0%</span>
                             </div>
                         </div>
                         <div class="metric-info">
-                            <strong id="confidenceLevel">Tinggi</strong> <span id="confidenceDescription">- Sangat Akurat</span>
+                            <strong id="confidenceLevel">Tinggi</strong> <span id="confidenceDescription">- Sangat
+                                Akurat</span>
                         </div>
                     </div>
                 </div>
@@ -194,8 +222,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-<!-- Integration with Flask API -->
+{% block extra_js%}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Get form elements
@@ -203,7 +232,18 @@
         const contextInput = document.getElementById('context');
         const questionInput = document.getElementById('question');
         const modelSelect = document.getElementById('model');
-        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        // Button elements
+        const predictButton = document.getElementById('predictButton');
+        const buttonText = document.getElementById('buttonText');
+        const searchIcon = document.getElementById('searchIcon');
+        const buttonSpinner = document.getElementById('buttonSpinner');
+
+        // Remove the old loading spinner div
+        const oldLoadingSpinner = document.getElementById('loadingSpinner');
+        if (oldLoadingSpinner) {
+            oldLoadingSpinner.remove();
+        }
 
         // Get results section elements
         const resultsSection = document.getElementById('resultsSection');
@@ -219,9 +259,9 @@
         const confidenceValue = document.getElementById('confidenceValue');
 
         // Get progress circles SVG elements
-        const startPositionCircle = document.querySelector('.progress-start');
-        const endPositionCircle = document.querySelector('.progress-end');
-        const confidenceCircle = document.querySelector('.progress-confidence');
+        const startPositionCircle = document.querySelector('.start-position-ring');
+        const endPositionCircle = document.querySelector('.end-position-ring');
+        const confidenceCircle = document.querySelector('.confidence-ring');
 
         // Get metric info elements
         const startPositionPercentage = document.getElementById('startPositionPercentage');
@@ -229,11 +269,58 @@
         const confidenceLevel = document.getElementById('confidenceLevel');
         const confidenceDescription = document.getElementById('confidenceDescription');
 
-        // Hide loading spinner initially
-        loadingSpinner.style.display = 'none';
+        // Tambahkan event listeners untuk efek hover pada metric-item
+        const metricItems = document.querySelectorAll('.metric-item');
+        metricItems.forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                const pulse = item.querySelector('.pulse');
+                pulse.style.animation = 'none';
+                setTimeout(() => {
+                    pulse.style.animation = 'pulse 2s infinite';
+                }, 10);
+            });
+        });
 
         // Fetch available models from the server
         fetchAvailableModels();
+
+        function showErrorAlert(message) {
+            Swal.fire({
+                title: 'Error!',
+                text: message,
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#dc3545'
+            });
+        }
+
+        function showSuccessAlert(message) {
+            Swal.fire({
+                title: 'Berhasil!',
+                text: message,
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#28a745',
+                timer: 2000,
+                timerProgressBar: true
+            });
+        }
+
+        // Function to show loading state in button
+        function showLoadingButton() {
+            buttonText.textContent = 'Sedang Menganalisis...';
+            searchIcon.style.display = 'none';
+            buttonSpinner.style.display = 'inline-block';
+            predictButton.disabled = true;
+        }
+
+        // Function to hide loading state in button
+        function hideLoadingButton() {
+            buttonText.textContent = 'Prediksi';
+            searchIcon.style.display = 'inline-block';
+            buttonSpinner.style.display = 'none';
+            predictButton.disabled = false;
+        }
 
         // Handle form submission
         form.addEventListener('submit', function (e) {
@@ -246,26 +333,25 @@
 
             // Validate inputs
             if (!model) {
-                alert('Harap pilih model konfigurasi.');
+                showErrorAlert('Harap pilih model konfigurasi.');
                 modelSelect.focus();
                 return;
             }
 
             if (!context) {
-                alert('Harap isi bagian konteks.');
+                showErrorAlert('Harap isi bagian konteks.');
                 contextInput.focus();
                 return;
             }
 
             if (!question) {
-                alert('Harap isi bagian pertanyaan.');
+                showErrorAlert('Harap isi bagian pertanyaan.');
                 questionInput.focus();
                 return;
             }
 
-            // Show loading spinner
-            form.style.display = 'none';
-            loadingSpinner.style.display = 'block';
+            // Show loading state in button
+            showLoadingButton();
 
             // Hide results section while loading
             resultsSection.style.display = 'none';
@@ -289,9 +375,8 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Hide loading spinner and show form again
-                    loadingSpinner.style.display = 'none';
-                    form.style.display = 'block';
+                    // Hide loading button
+                    hideLoadingButton();
 
                     // Update UI with results
                     updateResults(data, context);
@@ -299,14 +384,16 @@
                     // Show results section
                     resultsSection.style.display = 'block';
 
+                    // Show success message
+                    showSuccessAlert('Prediksi berhasil dilakukan!');
+
                     // Scroll to results
                     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Terjadi kesalahan saat memproses permintaan Anda. Silakan coba lagi.');
-                    loadingSpinner.style.display = 'none';
-                    form.style.display = 'block';
+                    showErrorAlert('Terjadi kesalahan saat memproses permintaan Anda. Silakan coba lagi.');
+                    hideLoadingButton();
                 });
         });
 
@@ -320,7 +407,7 @@
                 })
                 .then(data => {
                     // Clear current options
-                    modelSelect.innerHTML = '<option value="" selected>Pilih model konfigurasi</option>';
+                    modelSelect.innerHTML = '<option value="" selected disabled class="text-muted">Pilih model konfigurasi</option>';
 
                     // Add options for each available model
                     data.models.forEach(model => {
@@ -332,8 +419,30 @@
                 })
                 .catch(error => {
                     console.error('Error fetching models:', error);
-                    alert('Gagal memuat daftar model. Silakan refresh halaman.');
+                    showErrorAlert('Gagal memuat daftar model. Silakan refresh halaman.');
                 });
+        }
+
+        function animateMetricValue(element, targetValue, isPercentage = false) {
+            let currentValue = 0;
+            const duration = 1500;
+            const steps = 60;
+            const stepDuration = duration / steps;
+
+            const interval = setInterval(() => {
+                if (currentValue < targetValue) {
+                    currentValue++;
+                    if (currentValue > targetValue) currentValue = targetValue;
+
+                    // Tampilkan dengan 1 desimal jika ada koma, jika tidak hilangkan desimal
+                    const displayValue = Number.isInteger(currentValue) ?
+                        currentValue.toFixed(0) : currentValue.toFixed(1);
+
+                    element.textContent = isPercentage ? displayValue + '%' : displayValue;
+                } else {
+                    clearInterval(interval);
+                }
+            }, stepDuration);
         }
 
         function updateResults(data, context) {
@@ -380,14 +489,20 @@
 
             answerPositionText.textContent = positionDescription;
 
-            // Update progress circles
-            startPositionValue.textContent = start;
-            endPositionValue.textContent = end;
-            confidenceValue.textContent = `${confidencePercentage}%`;
-
             // Calculate percentage for start and end positions
             const startPercentage = Math.round((start / context.length) * 100);
             const endPercentage = Math.round((end / context.length) * 100);
+
+            // Update progress circles and animate values
+            // Reset nilai untuk animasi
+            startPositionValue.textContent = '0';
+            endPositionValue.textContent = '0';
+            confidenceValue.textContent = '0%';
+
+            // Jalankan animasi untuk nilai
+            animateMetricValue(startPositionValue, start);
+            animateMetricValue(endPositionValue, end);
+            animateMetricValue(confidenceValue, confidencePercentage, true);
 
             // Update start position info
             startPositionPercentage.textContent = `${startPercentage}%`;
@@ -395,6 +510,7 @@
             // Update end position info
             endPositionPercentage.textContent = `${endPercentage}%`;
 
+            // Update confidence info
             let confidenceDescriptionText, confidenceLevelText;
 
             if (score > 0.7) {
@@ -412,8 +528,8 @@
             confidenceDescription.textContent = ' - ' + confidenceDescriptionText;
 
             // Update SVG circle strokes
-            // The circumference of the circle is 2πr = 2 * 3.14159 * 65 ≈ 408.4
-            const circumference = 408.4;
+            // The circumference of the circle is 2πr = 2 * 3.14159 * 54 ≈ 339.3
+            const circumference = 339.3;
 
             // Calculate stroke-dashoffset for each circle
             // Formula: circumference * (1 - percentage/100)
@@ -421,10 +537,33 @@
             const endOffset = circumference * (1 - endPercentage / 100);
             const confidenceOffset = circumference * (1 - confidencePercentage / 100);
 
-            // Update stroke-dashoffset values
-            startPositionCircle.setAttribute('stroke-dashoffset', startOffset);
-            endPositionCircle.setAttribute('stroke-dashoffset', endOffset);
-            confidenceCircle.setAttribute('stroke-dashoffset', confidenceOffset);
+            // Update stroke-dashoffset values with animation
+            animateStrokeDashoffset(startPositionCircle, circumference, startOffset);
+            animateStrokeDashoffset(endPositionCircle, circumference, endOffset);
+            animateStrokeDashoffset(confidenceCircle, circumference, confidenceOffset);
+        }
+
+        // Fungsi untuk menganimasikan stroke-dashoffset
+        function animateStrokeDashoffset(element, fromValue, toValue) {
+            const duration = 1500;
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / duration, 1);
+
+                // Gunakan fungsi easing untuk animasi yang lebih menarik (easeOutQuad)
+                const easeProgress = 1 - (1 - progress) * (1 - progress);
+                const currentValue = fromValue - (fromValue - toValue) * easeProgress;
+
+                element.style.strokeDashoffset = currentValue;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+
+            requestAnimationFrame(animate);
         }
 
         // Helper function to escape HTML special characters

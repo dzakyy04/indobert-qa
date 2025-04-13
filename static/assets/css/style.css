@@ -901,7 +901,7 @@
     flex-wrap: wrap;
     gap: 40px;
     justify-content: center;
-    padding: 20px;
+    padding: 20px 0;
 }
 
 .metric-item {
@@ -957,7 +957,7 @@
     font-weight: 700;
     color: var(--text-dark);
     opacity: 0;
-    animation: fadeIn 0.5s ease-out 1.5s forwards;
+    animation: fadeIn 0.5s ease-out 1s forwards;
 }
 
 @keyframes fadeIn {
@@ -1088,7 +1088,6 @@
     background: var(--gradient-primary);
     border-radius: var(--border-radius);
     padding: 60px 40px;
-    color: white;
     position: relative;
     overflow: hidden;
     box-shadow: 0 15px 30px rgba(255, 180, 0, 0.2);
@@ -1120,18 +1119,22 @@
     font-weight: 700;
     position: relative;
     z-index: 1;
+    color: var(--primary-light);
 }
 
 .cta-box p {
     position: relative;
     z-index: 1;
     opacity: 0.9;
+    color: var(--primary-light);
 }
 
 .cta-box .btn {
     position: relative;
     z-index: 1;
     transition: all 0.3s ease;
+    color: var(--primary-color);
+    background-color: var(--bg-light);
 }
 
 .cta-box .btn:hover {
@@ -1718,4 +1721,125 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Evaluation page */
+.metric-summary-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    padding: 24px;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.metric-summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.metric-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    font-size: 20px;
+    box-shadow: 0 4px 10px rgba(255, 180, 0, 0.3);
+}
+
+.metric-header h5 {
+    font-weight: 700;
+    margin-bottom: 0;
+    font-size: 18px;
+    color: var(--text-dark);
+}
+
+.metric-body {
+    display: flex;
+    align-items: center;
+}
+
+.metric-description {
+    flex: 1;
+}
+
+.metric-description p {
+    margin-bottom: 10px;
+    color: var(--text-muted);
+}
+
+.metric-rating {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.metric-rating .fas,
+.metric-rating .far,
+.metric-rating .fa-star-half-alt {
+    margin-right: 2px;
+    filter: drop-shadow(0 2px 3px rgba(255, 180, 0, 0.3));
+}
+
+.metric-rating span {
+    margin-left: 8px;
+    color: var(--text-muted);
+}
+
+.download-section {
+    margin: 40px 0;
+}
+
+.download-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.download-card:hover {
+    transform: translateY(-5px);
+}
+
+.download-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    background: var(--gradient-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+    font-size: 24px;
+    box-shadow: 0 4px 10px rgba(255, 180, 0, 0.3);
+}
+
+.download-info {
+    flex: 1;
+}
+
+.download-info h5 {
+    margin-bottom: 5px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.download-info p {
+    margin-bottom: 0;
+    color: var(--text-muted);
 }
