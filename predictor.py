@@ -15,12 +15,12 @@ class Predictor:
             
             # Run inference
             result = qa_pipeline(question=question, context=context, max_answer_len=100)
-            
+            score = round(result["score"] * 100, 1)
             return {
                 "answer": result["answer"],
                 "start": result["start"],
                 "end": result["end"],
-                "score": result["score"],
+                "score": score,
                 "model": model_path
             }
         except Exception as e:

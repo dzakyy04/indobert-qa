@@ -434,7 +434,6 @@
                     currentValue++;
                     if (currentValue > targetValue) currentValue = targetValue;
 
-                    // Tampilkan dengan 1 desimal jika ada koma, jika tidak hilangkan desimal
                     const displayValue = Number.isInteger(currentValue) ?
                         currentValue.toFixed(0) : currentValue.toFixed(1);
 
@@ -444,6 +443,31 @@
                 }
             }, stepDuration);
         }
+
+        function animateMetricValue(element, targetValue, isPercentage = false) {
+            const roundedTarget = Math.floor(targetValue); // Angka bulat sebelum desimal
+            let currentValue = 0;
+
+            const duration = 1500;
+            const steps = roundedTarget;
+            const stepDuration = duration / steps;
+
+            const interval = setInterval(() => {
+                currentValue += 1;
+
+                // Tampilkan angka bulat naik per 1
+                element.textContent = isPercentage ? currentValue + '%' : currentValue;
+
+                if (currentValue >= roundedTarget) {
+                    clearInterval(interval);
+
+                    // Setelah selesai, tampilkan nilai akhir (dengan atau tanpa koma)
+                    const formattedValue = Number(targetValue.toFixed(2)); // Hilangkan koma 0
+                    element.textContent = isPercentage ? formattedValue + '%' : formattedValue;
+                }
+            }, stepDuration);
+        }
+
 
         function updateResults(data, context) {
             // Ganti ilustrasi saat jawaban ditemukan
@@ -457,7 +481,7 @@
             const score = data.score;
 
             // Format confidence score as percentage
-            const confidencePercentage = Math.round(score * 100);
+            const confidencePercentage = score;
 
             // Update confidence badge
             confidenceBadge.textContent = `${confidencePercentage}% Confidence`;

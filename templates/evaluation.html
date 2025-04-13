@@ -98,7 +98,7 @@
         </div>
     </div>
 
-    <div class="results-section mb-6" id="resultsSection">
+    <div class="results-section mb-6" id="resultsSection" style="display: none;">
         <div class="results-header">
             <h2>Hasil Evaluasi</h2>
             <span class="results-badge me-2" id="emBadge">67% Exact Match</span>
@@ -203,6 +203,23 @@
                 </a>
             </div>
         </div>
+
+        <div class="sample-results-container" data-aos="fade-up" data-aos-delay="300">
+            <div class="sample-results-header">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-clipboard-check me-2" style="color: var(--primary-color)"></i>
+                    <h5 class="mb-0">Data Hasil Evaluasi</h5>
+                </div>
+                <div class="filter-controls">
+                    <button class="btn btn-sm" style="background-color: var(--secondary-color); color: white;"
+                        data-filter="all">Semua</button>
+                    <button class="btn btn-sm btn-outline-success" data-filter="correct">Benar</button>
+                    <button class="btn btn-sm btn-outline-danger" data-filter="incorrect">Salah</button>
+                </div>
+            </div>
+            <div class="sample-results-body">
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -217,12 +234,29 @@
         const selectedFileName = document.getElementById('selectedFileName');
         const previewContainer = document.getElementById('previewContainer');
         const previewTable = document.getElementById('previewTable');
+        const evaluateForm = document.getElementById('evaluateForm');
+        const resultsSection = document.getElementById('resultsSection');
+        const emBadge = document.getElementById('emBadge');
+        const f1Badge = document.getElementById('f1Badge');
+        const exactMatchRating = document.getElementById('exactMatchRating');
+        const f1ScoreRating = document.getElementById('f1ScoreRating');
+        const downloadResultsBtn = document.getElementById('downloadResultsBtn');
+        const sampleResultsBody = document.querySelector('.sample-results-body');
+        const modelSelect = document.getElementById('model');
+        const paginationInfo = document.getElementById('paginationInfo');
+        const prevSamplesBtn = document.getElementById('prevSamplesBtn');
+        const nextSamplesBtn = document.getElementById('nextSamplesBtn');
 
         // Objek untuk menyimpan data lengkap untuk setiap baris
         let fullContextData = {};
+        let selectedFile = null;
+        let currentPage = 1;
+        let itemsPerPage = 5;
+        let evaluationResults = null;
+        let totalResults = 0;
 
-        // Kolom yang dibutuhkan (dengan trim untuk mengabaikan spasi)
-        const requiredColumns = ['konteks', 'pertanyaan', 'jawaban'];
+        // Load available models when page loads
+        loadAvailableModels();
 
         // Ketika tombol "Pilih File" diklik
         browseButton.addEventListener('click', function (e) {
@@ -243,6 +277,109 @@
             handleFiles(this.files);
         });
 
+        // Handle form submission
+        evaluateForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            if (!selectedFile) {
+                showErrorAlert('Silakan pilih file CSV terlebih dahulu!');
+                return;
+            }
+
+            const modelPath = modelSelect.value;
+            if (!modelPath) {
+                showErrorAlert('Silakan pilih model terlebih dahulu!');
+                return;
+            }
+
+            // Show loading state
+            Swal.fire({
+                title: 'Sedang Mengevaluasi...',
+                html: 'Mohon tunggu sementara model melakukan evaluasi data.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('model_path', modelPath);
+
+            // Submit to API
+            fetch('/api/evaluate', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.error || 'Terjadi kesalahan saat evaluasi');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    Swal.close();
+                    handleEvaluationResults(data);
+                })
+                .catch(error => {
+                    Swal.close();
+                    showErrorAlert(error.message);
+                });
+        });
+
+        // Filter sample results
+        const filterButtons = document.querySelectorAll('.filter-controls button');
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const filter = this.getAttribute('data-filter');
+                filterSampleResults(filter);
+
+                // Update active button state
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Download results
+        downloadResultsBtn.addEventListener('click', function (e) {
+            if (!evaluationResults || !evaluationResults.eval_id) {
+                e.preventDefault();
+                showErrorAlert('Tidak ada hasil evaluasi untuk diunduh');
+                return false;
+            }
+
+            // Set the download link to the API endpoint
+            this.href = `/api/download-csv/${evaluationResults.eval_id}`;
+            return true;
+        });
+
+        // Function to load available models
+        function loadAvailableModels() {
+            fetch('/api/get_available_models')
+                .then(response => response.json())
+                .then(data => {
+                    const modelSelect = document.getElementById('model');
+
+                    // Clear existing options
+                    modelSelect.innerHTML = '<option value="" selected>Pilih model konfigurasi</option>';
+
+                    // Add new options
+                    data.models.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.path;
+                        option.textContent = model.name;
+                        modelSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading models:', error);
+                });
+        }
+
         // Delegate event untuk menangani klik pada konteks
         document.addEventListener('click', function (e) {
             if (e.target && e.target.classList.contains('text-truncate')) {
@@ -260,7 +397,7 @@
                 html: `<div style="text-align: left; max-height: 70vh; overflow-y: auto;">${context}</div>`,
                 width: '80%',
                 confirmButtonText: 'Tutup',
-                confirmButtonColor: '#3085d6'
+                confirmButtonColor: '#ffb400'
             });
         }
 
@@ -329,6 +466,7 @@
                 if (file.type === 'text/csv' || file.name.toLowerCase().endsWith('.csv')) {
                     selectedFileName.textContent = 'File: ' + file.name;
                     selectedFileName.style.display = 'block';
+                    selectedFile = file;
 
                     // Baca file sebagai text
                     const reader = new FileReader();
@@ -342,6 +480,7 @@
                     showErrorAlert('Hanya file CSV yang diperbolehkan!');
                     selectedFileName.style.display = 'none';
                     fileInput.value = ''; // Reset input file
+                    selectedFile = null;
                 }
             }
         }
@@ -422,10 +561,8 @@
             // Dapatkan header (baris pertama)
             const headerRow = rows[0].map(col => col.toLowerCase().trim());
 
-            // Debug: Tampilkan header yang terdeteksi di konsol
-            console.log("Header yang terdeteksi:", headerRow);
-
             // Validasi kolom yang dibutuhkan
+            const requiredColumns = ['konteks', 'pertanyaan', 'jawaban'];
             const missingColumns = [];
             for (const col of requiredColumns) {
                 if (!headerRow.includes(col)) {
@@ -497,87 +634,258 @@
                 fileText.textContent = 'Tidak ada data valid!';
             }
         }
-    });
 
-    const metricItems = document.querySelectorAll('.metric-item');
+        // Function to handle evaluation results
+        function handleEvaluationResults(data) {
+            // Store results globally
+            evaluationResults = data;
 
-    metricItems.forEach(item => {
-        item.addEventListener('mouseenter', () => {
-            const pulse = item.querySelector('.pulse');
-            pulse.style.animation = 'none';
-            setTimeout(() => {
-                pulse.style.animation = 'pulse 2s infinite';
-            }, 10);
-        });
-    });
+            // Show results section
+            resultsSection.style.display = 'block';
 
-    function animateMetrics() {
-        const metricValues = document.querySelectorAll('.metric-value');
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
 
-        metricValues.forEach(value => {
-            const targetValue = parseFloat(value.textContent);
-            let currentValue = 0;
+            // Update metrics
+            updateMetrics(data.metrics);
 
-            value.textContent = '0%';
+            // Display sample results
+            currentPage = 1;
+            totalResults = data.evaluation_data.length;
+            displaySampleResults(data.evaluation_data, currentPage);
 
-            const duration = 1500;
-            const steps = 60;
-            const stepDuration = duration / steps;
+            // Set download link
+            downloadResultsBtn.setAttribute('data-url', data.download_link);
 
-            const interval = setInterval(() => {
-                if (currentValue < targetValue) {
-                    currentValue++;
-                    if (currentValue > targetValue) currentValue = targetValue;
+            // Animate metrics
+            animateMetrics();
+        }
 
-                    // Tampilkan dengan 1 desimal jika ada koma, jika tidak hilangkan desimal
-                    const displayValue = Number.isInteger(currentValue) ?
-                        currentValue.toFixed(0) : currentValue.toFixed(1);
+        // Function to update metrics display
+        function updateMetrics(metrics) {
+            // Update badges
+            emBadge.textContent = `${metrics.exact_match}% Exact Match`;
+            f1Badge.textContent = `${metrics.f1_score}% F1-Score`;
 
-                    value.textContent = displayValue + '%';
-                } else {
-                    clearInterval(interval);
-                }
-            }, stepDuration);
-        });
-    }
+            // Update rings
+            const emRing = document.querySelector('.metric-ring .progress-ring');
+            const f1Ring = document.querySelectorAll('.metric-ring .progress-ring')[1];
 
-    // Tambahkan listener untuk melihat apakah hasil evaluasi sudah ditampilkan
-    const resultsSection = document.getElementById('resultsSection');
+            // Calculate stroke-dashoffset (339.3 is the circumference of the circle with r=54)
+            const emOffset = 339.3 - (339.3 * metrics.exact_match / 100);
+            const f1Offset = 339.3 - (339.3 * metrics.f1_score / 100);
 
-    // Jika hasil evaluasi sudah ada dalam DOM dan ditampilkan
-    if (resultsSection && window.getComputedStyle(resultsSection).display !== 'none') {
-        // Langsung animasikan jika sudah ditampilkan
-        animateMetrics();
-    }
+            emRing.setAttribute('stroke-dashoffset', emOffset);
+            f1Ring.setAttribute('stroke-dashoffset', f1Offset);
 
-    // Tambahkan observer untuk melihat kapan bagian hasil muncul (misalnya setelah form dikirim)
-    const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                animateMetrics();
-                observer.unobserve(entry.target);
+            // Update metric values (for animation)
+            document.querySelectorAll('.metric-value')[0].textContent = `${metrics.exact_match}%`;
+            document.querySelectorAll('.metric-value')[1].textContent = `${metrics.f1_score}%`;
+
+            // Update ratings
+            updateRating(exactMatchRating, metrics.exact_match);
+            updateRating(f1ScoreRating, metrics.f1_score);
+        }
+
+        // Function to update star ratings based on score
+        function updateRating(ratingElement, score) {
+            const stars = ratingElement.querySelectorAll('i');
+            let ratingText = '';
+
+            // Reset all stars
+            stars.forEach(star => {
+                star.className = 'far fa-star';
+            });
+
+            // Set rating based on score
+            if (score >= 90) {
+                // 5 stars - Sangat Baik
+                for (let i = 0; i < 5; i++) stars[i].className = 'fas fa-star';
+                ratingText = 'Sangat Baik';
+            } else if (score >= 80) {
+                // 4.5 stars - Sangat Baik
+                for (let i = 0; i < 4; i++) stars[i].className = 'fas fa-star';
+                stars[4].className = 'fas fa-star-half-alt';
+                ratingText = 'Sangat Baik';
+            } else if (score >= 70) {
+                // 4 stars - Baik
+                for (let i = 0; i < 4; i++) stars[i].className = 'fas fa-star';
+                ratingText = 'Baik';
+            } else if (score >= 60) {
+                // 3.5 stars - Cukup Baik
+                for (let i = 0; i < 3; i++) stars[i].className = 'fas fa-star';
+                stars[3].className = 'fas fa-star-half-alt';
+                ratingText = 'Cukup Baik';
+            } else if (score >= 50) {
+                // 3 stars - Cukup
+                for (let i = 0; i < 3; i++) stars[i].className = 'fas fa-star';
+                ratingText = 'Cukup';
+            } else if (score >= 40) {
+                // 2.5 stars - Kurang
+                for (let i = 0; i < 2; i++) stars[i].className = 'fas fa-star';
+                stars[2].className = 'fas fa-star-half-alt';
+                ratingText = 'Kurang';
+            } else if (score >= 30) {
+                // 2 stars - Kurang
+                for (let i = 0; i < 2; i++) stars[i].className = 'fas fa-star';
+                ratingText = 'Kurang';
+            } else {
+                // 1 star - Sangat Kurang
+                stars[0].className = 'fas fa-star';
+                ratingText = 'Sangat Kurang';
             }
-        });
-    }, {
-        threshold: 0.1
-    });
 
-    if (resultsSection) {
-        observer.observe(resultsSection);
-    }
+            // Update rating text
+            ratingElement.querySelector('span').textContent = ratingText;
+        }
 
-    // Tambahkan listener untuk form submit (jika hasil ditampilkan setelah form dikirim)
-    const evaluateForm = document.getElementById('evaluateForm');
-    if (evaluateForm) {
-        evaluateForm.addEventListener('submit', function (e) {
-            // Tunggu sedikit untuk hasil ditampilkan setelah submit
-            setTimeout(function () {
-                if (window.getComputedStyle(resultsSection).display !== 'none') {
-                    animateMetrics();
+        // Function to display sample results with pagination
+        function displaySampleResults(data, page) {
+            // Clear existing results
+            sampleResultsBody.innerHTML = '';
+
+            // Calculate range for current page
+            const startIdx = (page - 1) * itemsPerPage;
+            const endIdx = Math.min(startIdx + itemsPerPage, data.length);
+            const displayedData = data.slice(startIdx, endIdx);
+
+            // Add sample results
+            displayedData.forEach(item => {
+                // Determine if answer is correct (exact match)
+                const isCorrect = item.jawaban.trim().toLowerCase() === item.prediksi.trim().toLowerCase();
+
+                // Create DOM element
+                const resultItem = document.createElement('div');
+                resultItem.className = 'sample-result-item';
+                resultItem.setAttribute('data-status', isCorrect ? 'correct' : 'incorrect');
+
+                resultItem.innerHTML = `
+                <div class="sample-result-header">
+                    <h5 class="sample-question">${item.pertanyaan}</h5>
+                    <div class="status-badge ${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Benar' : 'Salah'}</div>
+                </div>
+                <div class="sample-result-content">
+                    <div class="context-preview">
+                        <div class="preview-label">Konteks</div>
+                        <div class="context-text">${item.konteks}</div>
+                    </div>
+                    <div class="result-comparison">
+                        <div class="answer-column">
+                            <div class="answer-label">Jawaban Sebenarnya</div>
+                            <div class="answer-text expected">${item.jawaban}</div>
+                        </div>
+                        <div class="answer-column">
+                            <div class="answer-label">Prediksi Model</div>
+                            <div class="answer-text prediction ${isCorrect ? 'correct' : ''}">${item.prediksi}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+                sampleResultsBody.appendChild(resultItem);
+            });
+
+            const paginationElement = document.createElement('div');
+            paginationElement.className = 'sample-results-pagination';
+            paginationElement.innerHTML = `
+        <button class="btn btn-sm" 
+            style="color: var(--primary-color); border-color: var(--primary-color);" id="prevSamplesBtn"
+            ${page <= 1 ? 'disabled' : ''}>
+            <i class="fas fa-chevron-left me-1"></i>Sebelumnya
+        </button>
+        <span id="paginationInfo">Menampilkan ${startIdx + 1}-${endIdx} dari ${data.length}</span>
+        <button class="btn btn-sm" style="background-color: var(--primary-color); color: white;"
+            id="nextSamplesBtn" ${endIdx >= data.length ? 'disabled' : ''}>
+            Selanjutnya<i class="fas fa-chevron-right ms-1"></i>
+        </button>
+    `;
+            sampleResultsBody.appendChild(paginationElement);
+
+            // Update button event listeners for the newly created buttons
+            document.getElementById('prevSamplesBtn').addEventListener('click', function () {
+                if (currentPage > 1) {
+                    currentPage--;
+                    displaySampleResults(data, currentPage);
                 }
-            }, 500);
-        });
-    }
+            });
 
+            document.getElementById('nextSamplesBtn').addEventListener('click', function () {
+                const maxPage = Math.ceil(data.length / itemsPerPage);
+                if (currentPage < maxPage) {
+                    currentPage++;
+                    displaySampleResults(data, currentPage);
+                }
+            });
+        }
+
+        // Function to filter sample results
+        function filterSampleResults(filter) {
+            if (!evaluationResults) return;
+
+            let filteredData = evaluationResults.evaluation_data;
+
+            if (filter === 'correct') {
+                filteredData = filteredData.filter(item =>
+                    item.jawaban.trim().toLowerCase() === item.prediksi.trim().toLowerCase()
+                );
+            } else if (filter === 'incorrect') {
+                filteredData = filteredData.filter(item =>
+                    item.jawaban.trim().toLowerCase() !== item.prediksi.trim().toLowerCase()
+                );
+            }
+
+            totalResults = filteredData.length;
+            currentPage = 1;
+            displaySampleResults(filteredData, currentPage);
+        }
+
+        // Function to animate metrics
+        function animateMetrics() {
+            const metricValues = document.querySelectorAll('.metric-value');
+            const emValue = parseFloat(emBadge.textContent);
+            const f1Value = parseFloat(f1Badge.textContent);
+
+            animateValue(metricValues[0], 0, evaluationResults.metrics.exact_match, 1500);
+            animateValue(metricValues[1], 0, evaluationResults.metrics.f1_score, 1500);
+        }
+
+        // Function to animate a value from start to end
+        function animateValue(element, start, end, duration) {
+            let startTimestamp = null;
+
+            function formatValue(value) {
+                const fixed = value.toFixed(1);
+                return fixed.endsWith('.0') ? parseInt(fixed) : fixed;
+            }
+
+            function step(timestamp) {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const currentValue = progress * (end - start) + start;
+
+                element.textContent = formatValue(currentValue) + '%';
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    element.textContent = formatValue(end) + '%';
+                }
+            }
+
+            window.requestAnimationFrame(step);
+        }
+
+        // Metrics pulse animation
+        const metricItems = document.querySelectorAll('.metric-item');
+        metricItems.forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                const pulse = item.querySelector('.pulse');
+                pulse.style.animation = 'none';
+                setTimeout(() => {
+                    pulse.style.animation = 'pulse 2s infinite';
+                }, 10);
+            });
+        });
+    });
 </script>
 {% endblock %}
