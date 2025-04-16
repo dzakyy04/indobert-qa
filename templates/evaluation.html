@@ -15,18 +15,16 @@
                     <span>&nbsp;Jawabin</span>
                 </div>
 
-                <h1 class="display-4 fw-bold text-gradient">Uji Model Jawabin dengan Data Kamu!</h1>
+                <h1 class="display-4 fw-bold text-gradient">Uji Model Jawabin dengan Datamu!</h1>
                 <div class="title-line"></div>
                 <img id="illustrationImage" class="img-fluid mb-2"
-                    src="{{ url_for('static', filename='assets/img/illustrations/confuse-prediction.png') }}"
+                    src="{{ url_for('static', filename='assets/img/illustrations/confuse-evaluation.png') }}"
                     alt="Jawabin Illustration">
-                <p class="lead">Upload dataset kamu (konteks, pertanyaan, dan jawaban). Lihat performa model kami lewat
-                    metrik
-                    <strong>Exact
-                        Match</strong> dan <strong>F1 Score</strong>!
+                <p class="lead">
+                    Penasaran seberapa akurat model kami menjawab? Unggah dataset-mu (konteks, pertanyaan, dan jawaban),
+                    lalu cek
+                    performanya lewat <strong>Exact Match</strong> dan <strong>F1 Score</strong>!
                 </p>
-
-
             </div>
 
             <!-- Right Form -->
@@ -637,6 +635,9 @@
 
         // Function to handle evaluation results
         function handleEvaluationResults(data) {
+            const illustrationImage = document.getElementById('illustrationImage');
+            illustrationImage.src = "{{ url_for('static', filename='assets/img/illustrations/answer-prediction.png') }}";
+
             // Store results globally
             evaluationResults = data;
 
@@ -740,6 +741,7 @@
         }
 
         // Function to display sample results with pagination
+        // Function to display sample results with pagination
         function displaySampleResults(data, page) {
             // Clear existing results
             sampleResultsBody.innerHTML = '';
@@ -754,6 +756,14 @@
                 // Determine if answer is correct (exact match)
                 const isCorrect = item.jawaban.trim().toLowerCase() === item.prediksi.trim().toLowerCase();
 
+                // Get individual scores if available, or use default values
+                const exactMatch = item.exact_match !== undefined ? item.exact_match : (isCorrect ? 100 : 0);
+                const f1Score = item.f1_score !== undefined ? item.f1_score : (isCorrect ? 100 : 0);
+
+                // Format scores - remove decimal if it's a whole number
+                const formattedEM = Number.isInteger(exactMatch) ? exactMatch : exactMatch.toFixed(1);
+                const formattedF1 = Number.isInteger(f1Score) ? f1Score : f1Score.toFixed(1);
+
                 // Create DOM element
                 const resultItem = document.createElement('div');
                 resultItem.className = 'sample-result-item';
@@ -762,7 +772,11 @@
                 resultItem.innerHTML = `
                 <div class="sample-result-header">
                     <h5 class="sample-question">${item.pertanyaan}</h5>
-                    <div class="status-badge ${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Benar' : 'Salah'}</div>
+                    <div class="status-container">
+                        <div class="status-badge ${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Benar' : 'Salah'}</div>
+                        <div class="em-badge">EM: ${formattedEM}%</div>
+                        <span class="f1-badge">F1: ${formattedF1}%</span>
+                    </div>
                 </div>
                 <div class="sample-result-content">
                     <div class="context-preview">
@@ -781,7 +795,6 @@
                     </div>
                 </div>
             `;
-
                 sampleResultsBody.appendChild(resultItem);
             });
 

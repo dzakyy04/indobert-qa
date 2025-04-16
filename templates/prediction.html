@@ -33,11 +33,10 @@
                 <img id="illustrationImage" class="img-fluid mb-2"
                     src="{{ url_for('static', filename='assets/img/illustrations/confuse-prediction.png') }}"
                     alt="Jawabin Illustration">
-                <p class="lead">Biarkan AI kami bantu kamu temukan jawaban paling relevan langsung dari
-                    teks. Gak perlu
-                    cari manual — cukup masukkan
-                    konteks dan pertanyaanmu!</p>
-
+                <p class="lead">
+                    Temukan jawaban langsung dari teks dengan bantuan model kami. Cukup masukkan konteks dan pertanyaan,
+                    tanpa repot mencari manual!
+                </p>
             </div>
 
             <!-- Right Form -->
@@ -60,13 +59,13 @@
 
                         <div class="mb-4">
                             <label for="context" class="form-label">Konteks</label>
-                            <textarea class="form-control" id="context" name="context" rows="6"
+                            <textarea class="form-control" spellcheck="false" id="context" name="context" rows="8"
                                 placeholder="Masukkan teks konteks yang akan dianalisis..."></textarea>
                         </div>
 
                         <div class="mb-4">
                             <label for="question" class="form-label">Pertanyaan</label>
-                            <textarea class="form-control" id="question" name="question" rows="2"
+                            <textarea class="form-control" spellcheck="false" id="question" name="question" rows="2"
                                 placeholder="Masukkan pertanyaan yang ingin dijawab..."></textarea>
                         </div>
 
@@ -294,17 +293,17 @@
             });
         }
 
-        function showSuccessAlert(message) {
-            Swal.fire({
-                title: 'Berhasil!',
-                text: message,
-                icon: 'success',
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#28a745',
-                timer: 2000,
-                timerProgressBar: true
-            });
-        }
+        // function showSuccessAlert(message) {
+        //     Swal.fire({
+        //         title: 'Berhasil!',
+        //         text: message,
+        //         icon: 'success',
+        //         confirmButtonText: 'OK',
+        //         confirmButtonColor: '#28a745',
+        //         timer: 2000,
+        //         timerProgressBar: true
+        //     });
+        // }
 
         // Function to show loading state in button
         function showLoadingButton() {
@@ -383,9 +382,6 @@
 
                     // Show results section
                     resultsSection.style.display = 'block';
-
-                    // Show success message
-                    showSuccessAlert('Prediksi berhasil dilakukan!');
 
                     // Scroll to results
                     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });

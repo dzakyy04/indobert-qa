@@ -48,7 +48,6 @@
     align-items: center;
     justify-content: center;
     color: #fff;
-    box-shadow: 0 4px 15px rgba(121, 78, 245, 0.3);
 }
 
 .brand-text {
@@ -1902,7 +1901,16 @@
     color: var(--text-dark);
 }
 
-.status-badge {
+.status-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-badge,
+.em-badge,
+.f1-badge {
+    text-align: center;
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 12px;
@@ -1918,6 +1926,16 @@
 .status-badge.incorrect {
     background-color: var(--danger-light);
     color: #822727;
+}
+
+.em-badge {
+    background-color: rgba(255, 180, 0, 0.15);
+    color: var(--primary-color);
+}
+
+.f1-badge {
+    background-color: rgba(94, 53, 177, 0.15);
+    color: var(--secondary-color);
 }
 
 .sample-result-content {

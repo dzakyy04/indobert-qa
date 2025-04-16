@@ -64,11 +64,32 @@ class Evaluator:
             # Calculate overall metrics
             results = self.metric.compute(predictions=predictions, references=references)
             
+            # Calculate metrics for each row
+            row_metrics = []
+            for i, row in df.iterrows():
+                row_pred = {"id": row["id"], "prediction_text": row["prediksi"]}
+                row_ref = {"id": row["id"], "answers": {"text": [row["jawaban"]], "answer_start": [0]}}
+                
+                # Calculate metrics for this individual row
+                row_result = self.metric.compute(
+                    predictions=[row_pred],
+                    references=[row_ref]
+                )
+                
+                row_metrics.append({
+                    "exact_match": row_result["exact_match"],
+                    "f1": row_result["f1"]
+                })
+            
+            # Add metrics to DataFrame
+            df["exact_match"] = [m["exact_match"] for m in row_metrics]
+            df["f1_score"] = [round(m["f1"], 2) for m in row_metrics]
+            
             # Prepare results to send back in the API response
-            evaluation_data = df[["konteks", "pertanyaan", "jawaban", "prediksi"]].to_dict(orient='records')
+            evaluation_data = df[["konteks", "pertanyaan", "jawaban", "prediksi", "exact_match", "f1_score"]].to_dict(orient='records')
             
             # Create a filtered DataFrame for CSV export
-            df_export = df[["konteks", "pertanyaan", "jawaban", "prediksi"]]
+            df_export = df[["konteks", "pertanyaan", "jawaban", "prediksi", "exact_match", "f1_score"]]
             
             # Store DataFrame in cache for later access
             self.cache.set(f'eval_{eval_id}', df_export.to_dict())
