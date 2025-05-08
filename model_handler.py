@@ -1,4 +1,3 @@
-# model_handler.py
 import os
 import json
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
@@ -17,16 +16,20 @@ class ModelHandler:
             raise
 
     def create_qa_pipeline(self, model, tokenizer):
-        return pipeline("question-answering", model=model, tokenizer=tokenizer)
+        return pipeline(
+            "question-answering",
+            model=model,
+            tokenizer=tokenizer,
+            max_answer_len=500,
+            handle_impossible_answer=True
+        )
 
     def cache_pipeline(self, model_path, pipeline_instance):
         self.loaded_models[model_path] = pipeline_instance
 
     def get_model_pipeline(self, model_path):
         if model_path in self.loaded_models:
-            cached_pipeline = self.loaded_models[model_path]
-            return cached_pipeline
-
+            return self.loaded_models[model_path]
         try:
             model, tokenizer = self.load_model_and_tokenizer(model_path)
             qa_pipeline = self.create_qa_pipeline(model, tokenizer)
@@ -54,12 +57,38 @@ class ModelHandler:
         return all(os.path.exists(os.path.join(model_path, f)) for f in required_files)
 
     def _get_model_name(self, model_path, default_name):
+        folder_name = os.path.basename(model_path)
         config_path = os.path.join(model_path, "config.json")
         try:
             if os.path.exists(config_path):
                 with open(config_path, 'r', encoding='utf-8') as f:
-                    json.load(f)  # just to validate
-                return default_name
-        except:
+                    json.load(f)
+        except Exception:
             pass
+        folder_parts = folder_name.split('_')
+        model_num = ''.join(filter(str.isdigit, folder_parts[0]))
+        lr_part = next((part for part in folder_parts if part.startswith('lr')), '')
+        learning_rate = lr_part.replace('lr', '') if lr_part else ''
+        bs_part = next((part for part in folder_parts if part.startswith('bs')), '')
+        batch_size = bs_part.replace('bs', '') if bs_part else ''
+        
+        # Menentukan tipe penjawab berdasarkan kata kunci
+        if 'selektif' in folder_parts:
+            label = 'Penjawab Selektif'
+        elif 'pasti' in folder_parts:
+            label = 'Pasti Menjawab'
+        else:
+            label = 'Tidak Diketahui'
+        
+        # Menambahkan emoticon untuk model 3 dan 7 yang terbaik
+        emoticon = ""
+        if "terbaik" in folder_parts:
+            if model_num == "3":
+                emoticon = "🥇 "
+            elif model_num == "7":
+                emoticon = "🥇 "
+        
+        if model_num and learning_rate and batch_size:
+            formatted_name = f"{emoticon}Model {model_num} ({label}) | LR: {learning_rate}, BS: {batch_size}"
+            return formatted_name
         return default_name

@@ -129,8 +129,8 @@
             <div class="col-lg-7">
                 <!-- Answer Card -->
                 <div class="answer-card">
-                    <div class="answer-heading">
-                        <i class="fas fa-check-circle me-2"></i> Jawaban Terdeteksi
+                    <div class="answer-heading" id="answerHeading">
+
                     </div>
                     <div class="answer-text">
                         <p class="answer-text-quote" id="answerText"></p>
@@ -192,7 +192,7 @@
 
                     <!-- Confidence Score -->
                     <div class="metric-card">
-                        <h6 class="metric-title">Confidence<br>Score</h6>
+                        <h6 class="metric-title">Skor<br>Kepercayaan</h6>
                         <div class="metric-item">
                             <div class="metric-ring">
                                 <div class="pulse"></div>
@@ -246,6 +246,7 @@
 
         // Get results section elements
         const resultsSection = document.getElementById('resultsSection');
+        const answerHeading = document.getElementById('answerHeading');
         const confidenceBadge = document.getElementById('confidenceBadge');
         const highlightedContext = document.getElementById('highlightedContext');
         const answerText = document.getElementById('answerText');
@@ -293,21 +294,9 @@
             });
         }
 
-        // function showSuccessAlert(message) {
-        //     Swal.fire({
-        //         title: 'Berhasil!',
-        //         text: message,
-        //         icon: 'success',
-        //         confirmButtonText: 'OK',
-        //         confirmButtonColor: '#28a745',
-        //         timer: 2000,
-        //         timerProgressBar: true
-        //     });
-        // }
-
         // Function to show loading state in button
         function showLoadingButton() {
-            buttonText.textContent = 'Sedang Menganalisis...';
+            buttonText.textContent = 'Sedang Memprediksi...';
             searchIcon.style.display = 'none';
             buttonSpinner.style.display = 'inline-block';
             predictButton.disabled = true;
@@ -332,7 +321,7 @@
 
             // Validate inputs
             if (!model) {
-                showErrorAlert('Harap pilih model konfigurasi.');
+                showErrorAlert('Harap pilih konfigurasi model.');
                 modelSelect.focus();
                 return;
             }
@@ -387,7 +376,6 @@
                     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     showErrorAlert('Terjadi kesalahan saat memproses permintaan Anda. Silakan coba lagi.');
                     hideLoadingButton();
                 });
@@ -403,7 +391,7 @@
                 })
                 .then(data => {
                     // Clear current options
-                    modelSelect.innerHTML = '<option value="" selected disabled class="text-muted">Pilih model konfigurasi</option>';
+                    modelSelect.innerHTML = '<option value="" selected disabled class="text-muted">Pilih konfigurasi model</option>';
 
                     // Add options for each available model
                     data.models.forEach(model => {
@@ -414,45 +402,31 @@
                     });
                 })
                 .catch(error => {
-                    console.error('Error fetching models:', error);
                     showErrorAlert('Gagal memuat daftar model. Silakan refresh halaman.');
                 });
-        }
-
-        function animateMetricValue(element, targetValue, isPercentage = false) {
-            let currentValue = 0;
-            const duration = 1500;
-            const steps = 60;
-            const stepDuration = duration / steps;
-
-            const interval = setInterval(() => {
-                if (currentValue < targetValue) {
-                    currentValue++;
-                    if (currentValue > targetValue) currentValue = targetValue;
-
-                    const displayValue = Number.isInteger(currentValue) ?
-                        currentValue.toFixed(0) : currentValue.toFixed(1);
-
-                    element.textContent = isPercentage ? displayValue + '%' : displayValue;
-                } else {
-                    clearInterval(interval);
-                }
-            }, stepDuration);
         }
 
         function animateMetricValue(element, targetValue, isPercentage = false) {
             const roundedTarget = Math.floor(targetValue); // Angka bulat sebelum desimal
             let currentValue = 0;
 
+            // Handle zero or very small targets specially
+            if (roundedTarget <= 0) {
+                element.textContent = isPercentage ? "0%" : "0";
+                return;
+            }
+
             const duration = 1500;
-            const steps = roundedTarget;
+            const steps = Math.min(roundedTarget, 100); // Cap steps at 100 for very large values
             const stepDuration = duration / steps;
+            const increment = roundedTarget / steps;
 
             const interval = setInterval(() => {
-                currentValue += 1;
+                currentValue += increment;
 
-                // Tampilkan angka bulat naik per 1
-                element.textContent = isPercentage ? currentValue + '%' : currentValue;
+                // Tampilkan angka bulat naik
+                const displayValue = Math.floor(currentValue);
+                element.textContent = isPercentage ? displayValue + '%' : displayValue;
 
                 if (currentValue >= roundedTarget) {
                     clearInterval(interval);
@@ -464,11 +438,9 @@
             }, stepDuration);
         }
 
-
         function updateResults(data, context) {
-            // Ganti ilustrasi saat jawaban ditemukan
+            // Ganti ilustrasi berdasarkan hasil
             const illustrationImage = document.getElementById('illustrationImage');
-            illustrationImage.src = "{{ url_for('static', filename='assets/img/illustrations/answer-prediction.png') }}";
 
             // Extract data
             const answer = data.answer;
@@ -476,67 +448,92 @@
             const end = data.end;
             const score = data.score;
 
+            // Update answer heading and illustration
+            if (answer !== "") {
+                answerHeading.innerHTML = `<i class="fas fa-check-circle me-2"></i> Jawaban Terdeteksi`;
+                illustrationImage.src = "{{ url_for('static', filename='assets/img/illustrations/answer-prediction.png') }}";
+            } else {
+                answerHeading.innerHTML = `<i class="fas fa-times-circle me-2"></i> Jawaban Tidak Ditemukan`;
+                illustrationImage.src = "{{ url_for('static', filename='assets/img/illustrations/confuse-prediction.png') }}";
+            }
+
             // Format confidence score as percentage
             const confidencePercentage = score;
 
             // Update confidence badge
-            confidenceBadge.textContent = `${confidencePercentage}% Confidence`;
+            confidenceBadge.textContent = `${confidencePercentage}% Kepercayaan`;
 
             // Update answer
-            answerText.textContent = answer;
-
-            // Create highlighted context
-            const beforeAnswer = context.substring(0, start);
-            const actualAnswer = context.substring(start, end);
-            const afterAnswer = context.substring(end);
-
-            highlightedContext.innerHTML = escapeHTML(beforeAnswer) +
-                `<span class="highlight-answer">${escapeHTML(actualAnswer)}</span>` +
-                escapeHTML(afterAnswer);
-
-            // Update answer stats
-            answerLengthText.textContent = `${answer.length} Karakter`;
-
-            // Determine answer position description
-            let positionDescription = 'Tengah Paragraf';
-            const contextThird = context.length / 3;
-
-            if (start < contextThird) {
-                positionDescription = 'Awal Paragraf';
-            } else if (start > contextThird * 2) {
-                positionDescription = 'Akhir Paragraf';
+            if (answer !== "") {
+                answerText.textContent = answer;
+            } else {
+                answerText.textContent = "Tidak ada jawaban yang sesuai dengan konteks yang diberikan";
             }
 
-            answerPositionText.textContent = positionDescription;
+            // Create highlighted context
+            if (answer !== "") {
+                const beforeAnswer = context.substring(0, start);
+                const actualAnswer = context.substring(start, end);
+                const afterAnswer = context.substring(end);
+
+                highlightedContext.innerHTML = escapeHTML(beforeAnswer) +
+                    `<span class="highlight-answer">${escapeHTML(actualAnswer)}</span>` +
+                    escapeHTML(afterAnswer);
+            } else {
+                // Jika tidak ada jawaban, tampilkan konteks tanpa highlight
+                highlightedContext.innerHTML = escapeHTML(context);
+            }
+
+            // Update answer stats
+            if (answer !== "") {
+                answerLengthText.textContent = `${answer.length} Karakter`;
+
+                // Determine answer position description
+                let positionDescription = 'Tengah Paragraf';
+                const contextThird = context.length / 3;
+
+                if (start < contextThird) {
+                    positionDescription = 'Awal Paragraf';
+                } else if (start > contextThird * 2) {
+                    positionDescription = 'Akhir Paragraf';
+                }
+
+                answerPositionText.textContent = positionDescription;
+            } else {
+                answerLengthText.textContent = '0 Karakter';
+                answerPositionText.textContent = 'Tidak Ada';
+            }
 
             // Calculate percentage for start and end positions
-            const startPercentage = Math.round((start / context.length) * 100);
-            const endPercentage = Math.round((end / context.length) * 100);
+            const startPercentage = answer !== "" ? Math.round((start / context.length) * 100) : 0;
+            const endPercentage = answer !== "" ? Math.round((end / context.length) * 100) : 0;
 
-            // Update progress circles and animate values
             // Reset nilai untuk animasi
             startPositionValue.textContent = '0';
             endPositionValue.textContent = '0';
             confidenceValue.textContent = '0%';
 
             // Jalankan animasi untuk nilai
-            animateMetricValue(startPositionValue, start);
-            animateMetricValue(endPositionValue, end);
+            if (answer !== "") {
+                animateMetricValue(startPositionValue, start + 1);
+                animateMetricValue(endPositionValue, end);
+            } else {
+                startPositionValue.textContent = '0';
+                endPositionValue.textContent = '0';
+            }
             animateMetricValue(confidenceValue, confidencePercentage, true);
 
-            // Update start position info
+            // Update position info
             startPositionPercentage.textContent = `${startPercentage}%`;
-
-            // Update end position info
             endPositionPercentage.textContent = `${endPercentage}%`;
 
             // Update confidence info
-            let confidenceDescriptionText, confidenceLevelText;
+            let confidenceLevelText, confidenceDescriptionText;
 
-            if (score > 0.7) {
+            if (score > 70) {
                 confidenceLevelText = 'Tinggi';
                 confidenceDescriptionText = 'Sangat Akurat';
-            } else if (score > 0.4) {
+            } else if (score > 40) {
                 confidenceLevelText = 'Sedang';
                 confidenceDescriptionText = 'Cukup Akurat';
             } else {

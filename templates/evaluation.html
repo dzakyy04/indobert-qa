@@ -41,7 +41,7 @@
                         <div class="mb-4">
                             <label for="model" class="form-label">Pilih Model</label>
                             <select class="form-select" id="model" name="model" aria-label="Model selection">
-                                <option value="" selected>Pilih model konfigurasi</option>
+                                <option value="" selected>Pilih konfigurasi model</option>
                                 <!-- This will be populated dynamically -->
                             </select>
                         </div>
@@ -87,8 +87,10 @@
                         </div>
 
 
-                        <button type="submit" class="btn btn-predict w-100">
-                            <i class="fas fa-chart-line me-2"></i></i>&nbsp;Evaluasi
+                        <button type="submit" class="btn btn-predict w-100" id="evaluateButton">
+                            <i class="fas fa-chart-line" id="chartIcon"></i>&nbsp;<span id="buttonText">Evaluasi</span>
+                            <span class="spinner-border spinner-border-sm" id="buttonSpinner" role="status"
+                                style="display: none;"></span>
                         </button>
                     </form>
                 </div>
@@ -233,6 +235,9 @@
         const previewContainer = document.getElementById('previewContainer');
         const previewTable = document.getElementById('previewTable');
         const evaluateForm = document.getElementById('evaluateForm');
+        const buttonText = document.getElementById('buttonText');
+        const chartIcon = document.getElementById('chartIcon');
+        const evaluateButton = document.getElementById('evaluateButton');
         const resultsSection = document.getElementById('resultsSection');
         const emBadge = document.getElementById('emBadge');
         const f1Badge = document.getElementById('f1Badge');
@@ -291,15 +296,7 @@
             }
 
             // Show loading state
-            Swal.fire({
-                title: 'Sedang Mengevaluasi...',
-                html: 'Mohon tunggu sementara model melakukan evaluasi data.',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            showLoadingButton();
 
             // Prepare form data
             const formData = new FormData();
@@ -363,7 +360,7 @@
                     const modelSelect = document.getElementById('model');
 
                     // Clear existing options
-                    modelSelect.innerHTML = '<option value="" selected>Pilih model konfigurasi</option>';
+                    modelSelect.innerHTML = '<option value="" disabled selected>Pilih konfigurasi model</option>';
 
                     // Add new options
                     data.models.forEach(model => {
@@ -374,7 +371,7 @@
                     });
                 })
                 .catch(error => {
-                    console.error('Error loading models:', error);
+                    showErrorAlert('Gagal memuat daftar model. Silakan refresh halaman.');
                 });
         }
 
@@ -431,7 +428,6 @@
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#dc3545'
             });
-            dropzone.classList.add('invalid');
             previewContainer.style.display = 'none';
         }
 
@@ -446,6 +442,20 @@
                 timer: 2000,
                 timerProgressBar: true
             });
+        }
+
+        function showLoadingButton() {
+            buttonText.textContent = 'Sedang Mengevaluasi...';
+            chartIcon.style.display = 'none';
+            buttonSpinner.style.display = 'inline-block';
+            evaluateButton.disabled = true;
+        }
+
+        function hideLoadingButton() {
+            buttonText.textContent = 'Prediksi';
+            chartIcon.style.display = 'inline-block';
+            buttonSpinner.style.display = 'none';
+            evaluateButton.disabled = false;
         }
 
         // Fungsi untuk menghapus pesan error
@@ -569,7 +579,7 @@
             }
 
             if (missingColumns.length > 0) {
-                showErrorAlert(`File CSV tidak valid! Kolom yang hilang: ${missingColumns.join(', ')}`);
+                showErrorAlert(`File CSV tidak valid! Diperlukan kolom: ${missingColumns.join(', ')}`);
                 fileText.textContent = 'Format file tidak sesuai!';
                 return;
             }
@@ -636,16 +646,19 @@
         // Function to handle evaluation results
         function handleEvaluationResults(data) {
             const illustrationImage = document.getElementById('illustrationImage');
-            illustrationImage.src = "{{ url_for('static', filename='assets/img/illustrations/answer-prediction.png') }}";
+            illustrationImage.src = "{{ url_for('static', filename='assets/img/illustrations/answer-evaluation.png') }}";
 
             // Store results globally
             evaluationResults = data;
+
+            // Hide loading button
+            hideLoadingButton();
 
             // Show results section
             resultsSection.style.display = 'block';
 
             // Scroll to results
-            resultsSection.scrollIntoView({ behavior: 'smooth' });
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
             // Update metrics
             updateMetrics(data.metrics);
@@ -864,29 +877,28 @@
 
         // Function to animate a value from start to end
         function animateValue(element, start, end, duration) {
-            let startTimestamp = null;
+            const totalSteps = 100;
+            const stepValue = (end - start) / totalSteps;
+            const intervalTime = duration / totalSteps;
+            let currentStep = 0;
 
-            function formatValue(value) {
-                const fixed = value.toFixed(1);
-                return fixed.endsWith('.0') ? parseInt(fixed) : fixed;
-            }
+            const interval = setInterval(() => {
+                currentStep++;
+                let currentValue = start + stepValue * currentStep;
 
-            function step(timestamp) {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const currentValue = progress * (end - start) + start;
+                // Tampilkan nilai bulat saat animasi
+                element.textContent = Math.floor(currentValue) + '%';
 
-                element.textContent = formatValue(currentValue) + '%';
+                if (currentStep >= totalSteps) {
+                    clearInterval(interval);
 
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                } else {
-                    element.textContent = formatValue(end) + '%';
+                    // Tampilkan nilai akhir dengan desimal jika ada
+                    const fixed = end.toFixed(1);
+                    element.textContent = fixed.endsWith('.0') ? parseInt(fixed) + '%' : fixed + '%';
                 }
-            }
-
-            window.requestAnimationFrame(step);
+            }, intervalTime);
         }
+
 
         // Metrics pulse animation
         const metricItems = document.querySelectorAll('.metric-item');

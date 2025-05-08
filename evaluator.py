@@ -1,4 +1,3 @@
-# evaluator.py
 import pandas as pd
 import evaluate
 import uuid
@@ -8,7 +7,7 @@ class Evaluator:
     def __init__(self, model_handler, cache):
         self.model_handler = model_handler
         self.cache = cache
-        self.metric = evaluate.load("squad")
+        self.metric = evaluate.load("squad_v2")
 
     def validate_file(self, file):
         if file.filename == '':
@@ -24,13 +23,15 @@ class Evaluator:
         required_columns = ["konteks", "pertanyaan", "jawaban"]
         if not all(col in df.columns for col in required_columns):
             raise ValueError(f'CSV must contain columns: {required_columns}')
-
+        
+        # Ganti NaN dengan string kosong
+        df["jawaban"] = df["jawaban"].fillna("")
         df["id"] = df.index.astype(str)
         return df
 
     def calculate_predictions(self, df, qa_pipeline):
         df["prediksi"] = df.apply(
-            lambda row: qa_pipeline(question=row["pertanyaan"], context=row["konteks"])["answer"],
+            lambda row: qa_pipeline(question=row["pertanyaan"], context=row["konteks"]).get("answer", ""),
             axis=1
         )
         return df
@@ -49,19 +50,18 @@ class Evaluator:
         predictions = [
             {
                 "id": row["id"],
-                "prediction_text": row["prediksi"]
+                "prediction_text": row["prediksi"],
+                "no_answer_probability": 1.0 if row["prediksi"].strip() == "" else 0.0
             } for _, row in df.iterrows()
         ]
 
         overall_results = self.metric.compute(predictions=predictions, references=references)
 
         row_metrics = []
-        for i, row in df.iterrows():
-            row_pred = {"id": row["id"], "prediction_text": row["prediksi"]}
-            row_ref = {"id": row["id"], "answers": {"text": [row["jawaban"]], "answer_start": [0]}}
-            row_result = self.metric.compute(predictions=[row_pred], references=[row_ref])
+        for pred, ref in zip(predictions, references):
+            row_result = self.metric.compute(predictions=[pred], references=[ref])
             row_metrics.append({
-                "exact_match": row_result["exact_match"],
+                "exact_match": row_result["exact"],
                 "f1": row_result["f1"]
             })
 
@@ -69,11 +69,10 @@ class Evaluator:
         df["f1_score"] = [round(m["f1"], 2) for m in row_metrics]
 
         return df, overall_results
-        
+
     def generate_download_link(self, eval_id):
         return f"/api/download-csv/{eval_id}"
-    
-    # New function to cache evaluation results
+
     def cache_evaluation_results(self, eval_id, df_export):
         self.cache.set(f'eval_{eval_id}', df_export.to_dict())
 
@@ -88,20 +87,16 @@ class Evaluator:
             df, overall_metrics = self.compute_metrics(df)
 
             df_export = df[["konteks", "pertanyaan", "jawaban", "prediksi", "exact_match", "f1_score"]]
-            # Use the new function to cache results
             self.cache_evaluation_results(eval_id, df_export)
-
-            evaluation_data = df_export.to_dict(orient='records')
-            download_link = self.generate_download_link(eval_id)
 
             results = {
                 'eval_id': eval_id,
                 'metrics': {
-                    'exact_match': round(overall_metrics['exact_match'], 2),
+                    'exact_match': round(overall_metrics['exact'], 2),
                     'f1_score': round(overall_metrics['f1'], 2)
                 },
-                'evaluation_data': evaluation_data,
-                'download_link': download_link
+                'evaluation_data': df_export.to_dict(orient='records'),
+                'download_link': self.generate_download_link(eval_id)
             }
 
             return results
@@ -113,7 +108,6 @@ class Evaluator:
         df_dict = self.cache.get(f'eval_{eval_id}')
         if df_dict is None:
             raise ValueError('Evaluation results not found')
-
         df_export = pd.DataFrame.from_dict(df_dict)
         csv_buffer = io.StringIO()
         df_export.to_csv(csv_buffer, index=False)
