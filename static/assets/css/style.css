@@ -1899,6 +1899,10 @@
     margin-bottom: 0;
     font-size: 16px;
     color: var(--text-dark);
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    flex: 1;
 }
 
 .status-container {
